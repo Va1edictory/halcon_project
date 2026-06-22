@@ -45,9 +45,6 @@ for Index := 0 to TotalImages - 1 by 1
         localize (AnomalyImage, RegionThreshold, MinArea, DefectRegions, BoundingBoxes, NumDefects)
 
         * Build save path
-        * Extract base filename
-        parse_filename (CurrentImagePath, BaseName, Extension, Directory)
-
         if (IsNG = 1)
             Prefix := 'NG'
             CountNG := CountNG + 1
@@ -77,10 +74,8 @@ for Index := 0 to TotalImages - 1 by 1
 
 endfor
 
-* Final summary
-dev_close_window ()
+* Final summary (open additional window, keep caller's windows intact)
 dev_open_window (0, 0, 400, 200, 'black', SummaryWindow)
-dev_set_window (SummaryWindow)
 SummaryText := 'Batch Complete'
 SummaryText[1] := 'Total: ' + TotalImages
 SummaryText[2] := 'OK: ' + CountOK
