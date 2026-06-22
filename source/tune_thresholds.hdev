@@ -1,6 +1,88 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <hdprogram>
-  <procedure_list/>
+  <procedure_list>
+    <procedure>
+      <name>load_model</name>
+      <short_description>Load DLT model and preprocessing parameters</short_description>
+      <parameter_list>
+        <parameter>
+          <name>ModelPath</name>
+          <type>input</type>
+          <sem_type>string</sem_type>
+        </parameter>
+        <parameter>
+          <name>DictPath</name>
+          <type>input</type>
+          <sem_type>string</sem_type>
+        </parameter>
+        <parameter>
+          <name>DLModelHandle</name>
+          <type>output</type>
+          <sem_type></sem_type>
+        </parameter>
+        <parameter>
+          <name>DLPreprocessParams</name>
+          <type>output</type>
+          <sem_type></sem_type>
+        </parameter>
+      </parameter_list>
+      <implementation>
+        <body>
+          <![CDATA[
+* Load the deep learning model
+read_dl_model (ModelPath, DLModelHandle)
+
+* Load preprocessing parameters dictionary
+read_dict (DictPath, [], [], DLPreprocessParams)
+
+* Log what was loaded
+get_dict_tuple (DLPreprocessParams, 'model_type', ModelType)
+get_dict_tuple (DLPreprocessParams, 'image_width', ImageWidth)
+get_dict_tuple (DLPreprocessParams, 'image_height', ImageHeight)
+
+dev_disp_text ('Model loaded: ' + ModelType + ' | Input: ' + ImageWidth + 'x' + ImageHeight, 'window', 'top', 'left', 'white', [], [])
+
+return ()
+          ]]>
+        </body>
+      </implementation>
+    </procedure>
+    <procedure>
+      <name>preprocess</name>
+      <short_description>Convert raw image to DLSample using training preprocessing params</short_description>
+      <parameter_list>
+        <parameter>
+          <name>Image</name>
+          <type>input</type>
+          <sem_type>image</sem_type>
+        </parameter>
+        <parameter>
+          <name>DLPreprocessParams</name>
+          <type>input</type>
+          <sem_type></sem_type>
+        </parameter>
+        <parameter>
+          <name>DLSample</name>
+          <type>output</type>
+          <sem_type></sem_type>
+        </parameter>
+      </parameter_list>
+      <implementation>
+        <body>
+          <![CDATA[
+* Create a new dict and place the image into it
+create_dict (DLSample)
+set_dict_tuple (DLSample, 'image', Image)
+
+* Apply the same preprocessing used during training
+preprocess_dl_model (DLSample, DLPreprocessParams)
+
+return ()
+          ]]>
+        </body>
+      </implementation>
+    </procedure>
+  </procedure_list>
   <body>
     <![CDATA[
 *==========================================================================
