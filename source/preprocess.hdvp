@@ -1,0 +1,19 @@
+* PROCEDURE: preprocess
+*
+* Convert raw image to DLSample using training preprocessing params.
+*
+* INPUT:
+*   Image              — raw input image (image)
+*   DLPreprocessParams — dictionary from _dl_preprocess_params.hdict (dict)
+*
+* OUTPUT:
+*   DLSample — dict containing preprocessed image ready for apply_dl_model (dict)
+
+* Create a new dict and place the image into it
+create_dict (DLSample)
+set_dict_tuple (DLSample, 'image', Image)
+
+* Apply the same preprocessing used during training
+preprocess_dl_model (DLSample, DLPreprocessParams)
+
+return ()
