@@ -1,11 +1,14 @@
-* load_model — Load DLT model and preprocessing parameters
+* PROCEDURE: load_model
 *
-* Input:
-*   ModelPath — path to trained .hdl model file
-*   DictPath  — path to _dl_preprocess_params.hdict
-* Output:
+* Load DLT model and preprocessing parameters for anomaly detection.
+*
+* INPUT:
+*   ModelPath — absolute path to the .hdl trained model file (string)
+*   DictPath  — absolute path to the _dl_preprocess_params.hdict file (string)
+*
+* OUTPUT:
 *   DLModelHandle      — handle to the loaded DL model
-*   DLPreprocessParams — dict with preprocessing configuration
+*   DLPreprocessParams — dictionary with preprocessing configuration
 
 * Load the deep learning model
 read_dl_model (ModelPath, DLModelHandle)
@@ -18,7 +21,6 @@ get_dict_tuple (DLPreprocessParams, 'model_type', ModelType)
 get_dict_tuple (DLPreprocessParams, 'image_width', ImageWidth)
 get_dict_tuple (DLPreprocessParams, 'image_height', ImageHeight)
 
-dev_get_window (CurrentWindow)
 dev_disp_text ('Model loaded: ' + ModelType + ' | Input: ' + ImageWidth + 'x' + ImageHeight, 'window', 'top', 'left', 'white', [], [])
 
 return ()
