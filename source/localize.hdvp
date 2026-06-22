@@ -1,0 +1,35 @@
+* PROCEDURE: localize
+*
+* Extract defect regions and bounding boxes from anomaly heatmap.
+*
+* INPUT:
+*   AnomalyImage    — real-valued anomaly heatmap from infer (image)
+*   RegionThreshold — threshold value for binarization (0-255) (real)
+*   MinArea         — minimum region area in pixels to filter noise (integer)
+*
+* OUTPUT:
+*   DefectRegions — connected, filtered anomaly regions (region)
+*   BoundingBoxes — bounding rectangles (rectangle1) for each region (region)
+*   NumDefects    — number of defect regions found (integer)
+
+* Scale real anomaly image to [0, 255] byte range
+scale_image_max (AnomalyImage, AnomalyImageScaled)
+
+* Threshold: pixels above RegionThreshold become the anomaly region
+threshold (AnomalyImageScaled, AnomalyRegion, RegionThreshold, 255)
+
+* Separate disconnected regions
+connection (AnomalyRegion, ConnectedRegions)
+
+* Filter out noise: keep only regions with area >= MinArea pixels
+select_shape (ConnectedRegions, DefectRegions, 'area', 'and', MinArea, 999999)
+
+* Count the remaining defect regions
+count_obj (DefectRegions, NumDefects)
+
+* Convert to bounding rectangles
+if (NumDefects > 0)
+    shape_trans (DefectRegions, BoundingBoxes, 'rectangle1')
+endif
+
+return ()
