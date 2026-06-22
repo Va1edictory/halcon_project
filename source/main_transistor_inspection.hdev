@@ -40,7 +40,7 @@ endtry
 
 * Mode selection dialog
 dev_disp_text ('Select Mode: 1 = Single Image | 2 = Batch Folder', 'window', 'center', 'center', 'white', [], [])
-Mode := 0
+Mode := 1
 
 * --- Mode 1: Single Image Inspection ---
 if (Mode = 1)

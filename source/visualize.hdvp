@@ -21,14 +21,24 @@ dev_disp_text ('Original Image', 'window', 'top', 'left', 'white', 'box', 'false
 * --- Right window: result overlay ---
 dev_set_window (WindowHandleRight)
 
-* Display the anomaly image with a color LUT for heatmap effect
-dev_set_lut ('hot')
-* Convert real anomaly to byte for display
-convert_image_type (AnomalyImage, AnomalyImageByte, 'byte')
-dev_display (AnomalyImageByte)
+* Scale anomaly image to full [0,255] byte range for visualization
+scale_image_max (AnomalyImage, AnomalyImageScaled)
+convert_image_type (AnomalyImageScaled, AnomalyImageByte, 'byte')
 
-* Reset LUT to default for other overlays
-dev_set_lut ('default')
+* Display original image as base layer
+dev_display (Image)
+
+* Blend anomaly heatmap at 50% opacity over original
+* Convert both to real, scale, add, convert back to byte
+convert_image_type (Image, ImageReal, 'real')
+convert_image_type (AnomalyImageByte, AnomalyReal, 'real')
+scale_image (ImageReal, ImageBase, 0.5, 0)
+scale_image (AnomalyReal, AnomalyOverlay, 0.5, 0)
+add_image (ImageBase, AnomalyOverlay, BlendedReal, 1.0, 0)
+convert_image_type (BlendedReal, BlendedImage, 'byte')
+
+* Display the blended result
+dev_display (BlendedImage)
 
 * Draw red bounding boxes for each defect region
 if (NumDefects > 0)
