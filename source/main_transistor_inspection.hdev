@@ -15,15 +15,10 @@
 <c>* Load preprocessing parameters dictionary</c>
 <l>read_dict (DictPath, [], [], DLPreprocessParams)</l>
 <c></c>
-<c>* Log what was loaded</c>
+<c>* Verify model parameters</c>
 <l>get_dict_tuple (DLPreprocessParams, 'model_type', ModelType)</l>
 <l>get_dict_tuple (DLPreprocessParams, 'image_width', ImageWidth)</l>
 <l>get_dict_tuple (DLPreprocessParams, 'image_height', ImageHeight)</l>
-<c></c>
-<l>dev_disp_text ('Model loaded: ' + ModelType + ' | Input: ' \</l>
-<l>               + ImageWidth + 'x' + ImageHeight, 'window', \</l>
-<l>               'top', 'left', 'white', [], [])</l>
-<c></c>
 <l>return ()</l>
 </body>
 <docu id="load_model">
@@ -192,7 +187,7 @@
 <c></c>
 <c>* Optionally save the result image</c>
 <l>if (|SavePath| &gt; 0)</l>
-<l>    * Dump the right window content to file</l>
+<c>    * Dump the right window content to file</c>
 <l>    dump_window_image (ResultImage, WindowHandleRight)</l>
 <l>    write_image (ResultImage, 'png', 0, SavePath)</l>
 <l>endif</l>
@@ -236,19 +231,19 @@
 <c></c>
 <c>* Process each image</c>
 <l>for Index := 0 to TotalImages - 1 by 1</l>
-<l>    * Get current image path</l>
+<c>    * Get current image path</c>
 <l>    tuple_select (ImageFiles, Index, CurrentImagePath)</l>
 <c></c>
-<l>    * Read and process with error handling</l>
+<c>    * Read and process with error handling</c>
 <l>    try</l>
 <l>        read_image (CurrentImage, CurrentImagePath)</l>
 <c></c>
-<l>        * Run the detection pipeline</l>
+<c>        * Run the detection pipeline</c>
 <l>        preprocess (CurrentImage, DLPreprocessParams, DLSample)</l>
 <l>        infer (DLModelHandle, DLSample, AnomalyThreshold, IsNG, AnomalyScore, AnomalyImage)</l>
 <l>        localize (AnomalyImage, RegionThreshold, MinArea, DefectRegions, BoundingBoxes, NumDefects)</l>
 <c></c>
-<l>        * Build save path</l>
+<c>        * Build save path</c>
 <l>        if (IsNG = 1)</l>
 <l>            Prefix := 'NG'</l>
 <l>            CountNG := CountNG + 1</l>
@@ -257,25 +252,25 @@
 <l>            CountOK := CountOK + 1</l>
 <l>        endif</l>
 <c></c>
-<l>        * Zero-padded sequence number</l>
+<c>        * Zero-padded sequence number</c>
 <l>        tuple_string (Index, '04d', SeqStr)</l>
 <l>        SavePath := OutputFolder + '/' + Prefix + '_' + SeqStr + '.png'</l>
 <c></c>
-<l>        * Display and save</l>
+<c>        * Display and save</c>
 <l>        visualize (CurrentImage, AnomalyImage, IsNG, AnomalyScore, \</l>
 <l>                   BoundingBoxes, NumDefects, WindowHandleLeft, \</l>
 <l>                   WindowHandleRight, SavePath)</l>
 <c></c>
-<l>        * Progress feedback in console</l>
+<c>        * Progress feedback in console</c>
 <l>        dev_disp_text ('Processing ' + (Index + 1) + '/' + TotalImages \</l>
 <l>                       + '  OK:' + CountOK + '  NG:' + CountNG, \</l>
 <l>                       'window', 'bottom', 'right', 'white', [], [])</l>
 <c></c>
-<l>        * Brief pause so user can see each result (adjust as needed)</l>
+<c>        * Brief pause so user can see each result (adjust as needed)</c>
 <l>        wait_seconds (0.5)</l>
 <c></c>
 <l>    catch (Exception)</l>
-<l>        * Single image failure does not stop batch</l>
+<c>        * Single image failure does not stop batch</c>
 <l>        dev_disp_text ('Error on ' + CurrentImagePath + ': ' + Exception, \</l>
 <l>                       'window', 'bottom', 'right', 'red', [], [])</l>
 <l>        wait_seconds (1)</l>
@@ -342,49 +337,47 @@
 <l>    stop ()</l>
 <l>endtry</l>
 <c></c>
-<c>* Mode selection dialog</c>
-<l>dev_disp_text ('Select Mode: 1 = Single Image | 2 = Batch Folder', \</l>
-<l>               'window', 'center', 'center', 'white', [], [])</l>
+<c>* Mode selection: change Mode := 2 for batch processing</c>
 <l>Mode := 1</l>
 <c></c>
 <c>* --- Mode 1: Single Image Inspection ---</c>
 <l>if (Mode = 1)</l>
-<l>    * Select an image file</l>
+<c>    * Select an image file</c>
 <l>    read_image (TestImage, 'E:/halcon_project/dataset/transistor/test/bent_lead/000.png')</l>
-<l>    * TODO after testing: replace with dev_get_dialog or hardcoded path</l>
+<c>    * TODO after testing: replace with dev_get_dialog or hardcoded path</c>
 <c></c>
-<l>    * Create display windows</l>
+<c>    * Create display windows</c>
 <l>    dev_close_window ()</l>
 <l>    get_image_size (TestImage, ImgWidth, ImgHeight)</l>
-<l>    * Scale display to 512x512 while keeping aspect</l>
+<c>    * Scale display to 512x512 while keeping aspect</c>
 <l>    DispSize := 512</l>
 <l>    dev_open_window (0, 0, DispSize, DispSize, 'black', WindowHandleLeft)</l>
 <l>    dev_open_window (0, DispSize + 10, DispSize, DispSize, 'black', WindowHandleRight)</l>
 <l>    dev_set_part (0, 0, ImgHeight - 1, ImgWidth - 1)</l>
 <c></c>
-<l>    * Run pipeline</l>
+<c>    * Run pipeline</c>
 <l>    preprocess (TestImage, DLPreprocessParams, DLSample)</l>
 <l>    infer (DLModelHandle, DLSample, AnomalyThreshold, IsNG, AnomalyScore, AnomalyImage)</l>
 <l>    localize (AnomalyImage, RegionThreshold, MinArea, DefectRegions, BoundingBoxes, NumDefects)</l>
 <l>    visualize (TestImage, AnomalyImage, IsNG, AnomalyScore, \</l>
 <l>               BoundingBoxes, NumDefects, WindowHandleLeft, WindowHandleRight, '')</l>
 <c></c>
-<l>    * Keep windows open</l>
+<c>    * Keep windows open</c>
 <l>    dev_disp_text ('Press F5 to continue...', 'window', 'bottom', 'right', 'white', [], [])</l>
 <l>    stop ()</l>
 <c></c>
 <c>* --- Mode 2: Batch Folder Processing ---</c>
 <l>elseif (Mode = 2)</l>
-<l>    * Select input folder containing images</l>
+<c>    * Select input folder containing images</c>
 <l>    InputFolder := 'E:/halcon_project/dataset/transistor/test/good'</l>
-<l>    * TODO after testing: replace with dev_get_dialog or hardcoded path</l>
+<c>    * TODO after testing: replace with dev_get_dialog or hardcoded path</c>
 <c></c>
-<l>    * Create display windows (smaller for batch mode)</l>
+<c>    * Create display windows (smaller for batch mode)</c>
 <l>    dev_close_window ()</l>
 <l>    dev_open_window (0, 0, 400, 400, 'black', WindowHandleLeft)</l>
 <l>    dev_open_window (0, 420, 400, 400, 'black', WindowHandleRight)</l>
 <c></c>
-<l>    * Run batch</l>
+<c>    * Run batch</c>
 <l>    batch_process (InputFolder, OutputFolder, DLModelHandle, \</l>
 <l>                   DLPreprocessParams, AnomalyThreshold, \</l>
 <l>                   RegionThreshold, MinArea, WindowHandleLeft, \</l>

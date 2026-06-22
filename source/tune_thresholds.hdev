@@ -15,15 +15,10 @@
 <c>* Load preprocessing parameters dictionary</c>
 <l>read_dict (DictPath, [], [], DLPreprocessParams)</l>
 <c></c>
-<c>* Log what was loaded</c>
+<c>* Verify model parameters</c>
 <l>get_dict_tuple (DLPreprocessParams, 'model_type', ModelType)</l>
 <l>get_dict_tuple (DLPreprocessParams, 'image_width', ImageWidth)</l>
 <l>get_dict_tuple (DLPreprocessParams, 'image_height', ImageHeight)</l>
-<c></c>
-<l>dev_disp_text ('Model loaded: ' + ModelType + ' | Input: ' \</l>
-<l>               + ImageWidth + 'x' + ImageHeight, 'window', \</l>
-<l>               'top', 'left', 'white', [], [])</l>
-<c></c>
 <l>return ()</l>
 </body>
 <docu id="load_model">
@@ -85,20 +80,20 @@
 <l>    read_image (Image, ImagePaths[i])</l>
 <l>    preprocess (Image, DLPreprocessParams, DLSample)</l>
 <c></c>
-<l>    * Inference</l>
+<c>    * Inference</c>
 <l>    apply_dl_model (DLModelHandle, DLSample, [], DLResult)</l>
 <l>    get_dict_tuple (DLResult, 'anomaly_score', AnomalyScore)</l>
 <l>    get_dict_tuple (DLResult, 'anomaly_image', AnomalyImage)</l>
 <c></c>
-<l>    * Analyze anomaly image values</l>
+<c>    * Analyze anomaly image values</c>
 <l>    min_max_gray (AnomalyImage, AnomalyImage, 0, MinVal, MaxVal, Range)</l>
 <l>    intensity (AnomalyImage, AnomalyImage, MeanVal, Deviation)</l>
 <c></c>
-<l>    * Suggested region threshold = mean + 2*deviation</l>
+<c>    * Suggested region threshold = mean + 2*deviation</c>
 <l>    SuggestedThr := MeanVal + 2 * Deviation</l>
 <c></c>
-<l>    * Format result</l>
-<l>    * Extract basename from path: split on '/', take last element, remove extension</l>
+<c>    * Format result</c>
+<c>    * Extract basename from path: split on '/', take last element, remove extension</c>
 <l>    tuple_split (ImagePaths[i], '/', PathParts)</l>
 <l>    tuple_last_n (PathParts, 1, FileWithExt)</l>
 <l>    tuple_split (FileWithExt, '.', NameParts)</l>
