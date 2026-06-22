@@ -1,0 +1,90 @@
+* PROCEDURE: batch_process
+*
+* Process all images in a folder, save results.
+*
+* INPUT:
+*   InputFolder        — directory containing image files (string)
+*   OutputFolder       — directory to save result overlays (string)
+*   DLModelHandle      — loaded DL model (handle)
+*   DLPreprocessParams — preprocessing params dict (dict)
+*   AnomalyThreshold   — OK/NG score threshold (real)
+*   RegionThreshold    — anomaly map binarization threshold (real)
+*   MinArea            — minimum defect region area (integer)
+*   WindowHandleLeft   — left display window (window)
+*   WindowHandleRight  — right display window (window)
+
+* Ensure output folder exists
+file_exists (OutputFolder, FileExists)
+if (FileExists = 0)
+    make_dir (OutputFolder)
+endif
+
+* List all image files in the input folder
+list_image_files (InputFolder, 'default', [], ImageFiles)
+
+* Extract just the file count from the tuple
+* ImageFiles is a tuple of full paths
+tuple_length (ImageFiles, TotalImages)
+
+* Initialize counters
+CountOK := 0
+CountNG := 0
+
+* Process each image
+for Index := 0 to TotalImages - 1 by 1
+    * Get current image path
+    tuple_select (ImageFiles, Index, CurrentImagePath)
+
+    * Read and process with error handling
+    try
+        read_image (CurrentImage, CurrentImagePath)
+
+        * Run the detection pipeline
+        preprocess (CurrentImage, DLPreprocessParams, DLSample)
+        infer (DLModelHandle, DLSample, AnomalyThreshold, IsNG, AnomalyScore, AnomalyImage)
+        localize (AnomalyImage, RegionThreshold, MinArea, DefectRegions, BoundingBoxes, NumDefects)
+
+        * Build save path
+        * Extract base filename
+        parse_filename (CurrentImagePath, BaseName, Extension, Directory)
+
+        if (IsNG = 1)
+            Prefix := 'NG'
+            CountNG := CountNG + 1
+        else
+            Prefix := 'OK'
+            CountOK := CountOK + 1
+        endif
+
+        * Zero-padded sequence number
+        tuple_string (Index, '04d', SeqStr)
+        SavePath := OutputFolder + '/' + Prefix + '_' + SeqStr + '.png'
+
+        * Display and save
+        visualize (CurrentImage, AnomalyImage, IsNG, AnomalyScore, BoundingBoxes, NumDefects, WindowHandleLeft, WindowHandleRight, SavePath)
+
+        * Progress feedback in console
+        dev_disp_text ('Processing ' + (Index + 1) + '/' + TotalImages + '  OK:' + CountOK + '  NG:' + CountNG, 'window', 'bottom', 'right', 'white', [], [])
+
+        * Brief pause so user can see each result (adjust as needed)
+        wait_seconds (0.5)
+
+    catch (Exception)
+        * Single image failure does not stop batch
+        dev_disp_text ('Error on ' + CurrentImagePath + ': ' + Exception, 'window', 'bottom', 'right', 'red', [], [])
+        wait_seconds (1)
+    endtry
+
+endfor
+
+* Final summary
+dev_close_window ()
+dev_open_window (0, 0, 400, 200, 'black', SummaryWindow)
+dev_set_window (SummaryWindow)
+SummaryText := 'Batch Complete'
+SummaryText[1] := 'Total: ' + TotalImages
+SummaryText[2] := 'OK: ' + CountOK
+SummaryText[3] := 'NG: ' + CountNG
+disp_message (SummaryWindow, SummaryText, 'window', 20, 20, 'white', 'false')
+
+return ()
