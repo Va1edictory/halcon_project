@@ -1,548 +1,409 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<hdprogram>
-  <procedure_list>
-    <procedure>
-      <name>load_model</name>
-      <short_description>Load DLT model and preprocessing parameters</short_description>
-      <parameter_list>
-        <parameter>
-          <name>ModelPath</name>
-          <type>input</type>
-          <sem_type>string</sem_type>
-        </parameter>
-        <parameter>
-          <name>DictPath</name>
-          <type>input</type>
-          <sem_type>string</sem_type>
-        </parameter>
-        <parameter>
-          <name>DLModelHandle</name>
-          <type>output</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>DLPreprocessParams</name>
-          <type>output</type>
-          <sem_type></sem_type>
-        </parameter>
-      </parameter_list>
-      <implementation>
-        <body>
-          <![CDATA[
-* Load the deep learning model
-read_dl_model (ModelPath, DLModelHandle)
+<hdevelop file_version="1.2" halcon_version="25.11.0.0">
 
-* Load preprocessing parameters dictionary
-read_dict (DictPath, [], [], DLPreprocessParams)
+<procedure name="load_model">
+<interface>
+<parameter name="ModelPath" type="input"/>
+<parameter name="DictPath" type="input"/>
+<parameter name="DLModelHandle" type="output"/>
+<parameter name="DLPreprocessParams" type="output"/>
+</interface>
+<body>
+<c>* Load the deep learning model</c>
+<l>read_dl_model (ModelPath, DLModelHandle)</l>
+<c></c>
+<c>* Load preprocessing parameters dictionary</c>
+<l>read_dict (DictPath, [], [], DLPreprocessParams)</l>
+<c></c>
+<c>* Log what was loaded</c>
+<l>get_dict_tuple (DLPreprocessParams, 'model_type', ModelType)</l>
+<l>get_dict_tuple (DLPreprocessParams, 'image_width', ImageWidth)</l>
+<l>get_dict_tuple (DLPreprocessParams, 'image_height', ImageHeight)</l>
+<c></c>
+<l>dev_disp_text ('Model loaded: ' + ModelType + ' | Input: ' \</l>
+<l>               + ImageWidth + 'x' + ImageHeight, 'window', \</l>
+<l>               'top', 'left', 'white', [], [])</l>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="load_model">
+<parameters/>
+</docu>
+</procedure>
 
-* Log what was loaded
-get_dict_tuple (DLPreprocessParams, 'model_type', ModelType)
-get_dict_tuple (DLPreprocessParams, 'image_width', ImageWidth)
-get_dict_tuple (DLPreprocessParams, 'image_height', ImageHeight)
+<procedure name="preprocess">
+<interface>
+<parameter name="Image" type="input"/>
+<parameter name="DLPreprocessParams" type="input"/>
+<parameter name="DLSample" type="output"/>
+</interface>
+<body>
+<c>* Create a new dict and place the image into it</c>
+<l>create_dict (DLSample)</l>
+<l>set_dict_tuple (DLSample, 'image', Image)</l>
+<c></c>
+<c>* Apply the same preprocessing used during training</c>
+<l>preprocess_dl_model (DLSample, DLPreprocessParams)</l>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="preprocess">
+<parameters/>
+</docu>
+</procedure>
 
-dev_disp_text ('Model loaded: ' + ModelType + ' | Input: ' + ImageWidth + 'x' + ImageHeight, 'window', 'top', 'left', 'white', [], [])
+<procedure name="infer">
+<interface>
+<parameter name="DLModelHandle" type="input"/>
+<parameter name="DLSample" type="input"/>
+<parameter name="AnomalyThreshold" type="input"/>
+<parameter name="IsNG" type="output"/>
+<parameter name="AnomalyScore" type="output"/>
+<parameter name="AnomalyImage" type="output"/>
+</interface>
+<body>
+<c>* Run the model</c>
+<l>apply_dl_model (DLModelHandle, DLSample, [], DLResult)</l>
+<c></c>
+<c>* Extract results from the result dictionary</c>
+<l>get_dict_tuple (DLResult, 'anomaly_image', AnomalyImage)</l>
+<l>get_dict_tuple (DLResult, 'anomaly_score', AnomalyScore)</l>
+<c></c>
+<c>* Classify based on threshold</c>
+<l>if (AnomalyScore &gt; AnomalyThreshold)</l>
+<l>    IsNG := 1</l>
+<l>else</l>
+<l>    IsNG := 0</l>
+<l>endif</l>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="infer">
+<parameters/>
+</docu>
+</procedure>
 
-return ()
-          ]]>
-        </body>
-      </implementation>
-    </procedure>
-    <procedure>
-      <name>preprocess</name>
-      <short_description>Convert raw image to DLSample using training preprocessing params</short_description>
-      <parameter_list>
-        <parameter>
-          <name>Image</name>
-          <type>input</type>
-          <sem_type>image</sem_type>
-        </parameter>
-        <parameter>
-          <name>DLPreprocessParams</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>DLSample</name>
-          <type>output</type>
-          <sem_type></sem_type>
-        </parameter>
-      </parameter_list>
-      <implementation>
-        <body>
-          <![CDATA[
-* Create a new dict and place the image into it
-create_dict (DLSample)
-set_dict_tuple (DLSample, 'image', Image)
+<procedure name="localize">
+<interface>
+<parameter name="AnomalyImage" type="input"/>
+<parameter name="RegionThreshold" type="input"/>
+<parameter name="MinArea" type="input"/>
+<parameter name="DefectRegions" type="output"/>
+<parameter name="BoundingBoxes" type="output"/>
+<parameter name="NumDefects" type="output"/>
+</interface>
+<body>
+<c>* Scale real anomaly image to [0, 255] byte range</c>
+<l>scale_image_max (AnomalyImage, AnomalyImageScaled)</l>
+<c></c>
+<c>* Threshold: pixels above RegionThreshold become the anomaly region</c>
+<l>threshold (AnomalyImageScaled, AnomalyRegion, RegionThreshold, 255)</l>
+<c></c>
+<c>* Separate disconnected regions</c>
+<l>connection (AnomalyRegion, ConnectedRegions)</l>
+<c></c>
+<c>* Filter out noise: keep only regions with area &gt;= MinArea pixels</c>
+<l>select_shape (ConnectedRegions, DefectRegions, 'area', 'and', MinArea, 999999)</l>
+<c></c>
+<c>* Count the remaining defect regions</c>
+<l>count_obj (DefectRegions, NumDefects)</l>
+<c></c>
+<c>* Convert to bounding rectangles</c>
+<l>if (NumDefects &gt; 0)</l>
+<l>    shape_trans (DefectRegions, BoundingBoxes, 'rectangle1')</l>
+<l>else</l>
+<l>    gen_empty_obj (BoundingBoxes)</l>
+<l>endif</l>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="localize">
+<parameters/>
+</docu>
+</procedure>
 
-* Apply the same preprocessing used during training
-preprocess_dl_model (DLSample, DLPreprocessParams)
+<procedure name="visualize">
+<interface>
+<parameter name="Image" type="input"/>
+<parameter name="AnomalyImage" type="input"/>
+<parameter name="IsNG" type="input"/>
+<parameter name="AnomalyScore" type="input"/>
+<parameter name="BoundingBoxes" type="input"/>
+<parameter name="NumDefects" type="input"/>
+<parameter name="WindowHandleLeft" type="input"/>
+<parameter name="WindowHandleRight" type="input"/>
+<parameter name="SavePath" type="input"/>
+</interface>
+<body>
+<c>* --- Left window: original image ---</c>
+<l>dev_set_window (WindowHandleLeft)</l>
+<l>dev_display (Image)</l>
+<l>dev_disp_text ('Original Image', 'window', 'top', 'left', 'white', 'box', 'false')</l>
+<c></c>
+<c>* --- Right window: result overlay ---</c>
+<l>dev_set_window (WindowHandleRight)</l>
+<c></c>
+<c>* Scale anomaly image to full [0,255] byte range for visualization</c>
+<l>scale_image_max (AnomalyImage, AnomalyImageScaled)</l>
+<l>convert_image_type (AnomalyImageScaled, AnomalyImageByte, 'byte')</l>
+<c></c>
+<c>* Display original image as base layer</c>
+<l>dev_display (Image)</l>
+<c></c>
+<c>* Blend anomaly heatmap at 50% opacity over original</c>
+<c>* Convert both to real, scale, add, convert back to byte</c>
+<l>convert_image_type (Image, ImageReal, 'real')</l>
+<l>convert_image_type (AnomalyImageByte, AnomalyReal, 'real')</l>
+<l>scale_image (ImageReal, ImageBase, 0.5, 0)</l>
+<l>scale_image (AnomalyReal, AnomalyOverlay, 0.5, 0)</l>
+<l>add_image (ImageBase, AnomalyOverlay, BlendedReal, 1.0, 0)</l>
+<l>convert_image_type (BlendedReal, BlendedImage, 'byte')</l>
+<c></c>
+<c>* Display the blended result</c>
+<l>dev_display (BlendedImage)</l>
+<c></c>
+<c>* Draw red bounding boxes for each defect region</c>
+<l>if (NumDefects &gt; 0)</l>
+<l>    dev_set_color ('red')</l>
+<l>    dev_set_line_width (2)</l>
+<l>    dev_set_draw ('margin')</l>
+<l>    dev_display (BoundingBoxes)</l>
+<l>endif</l>
+<c></c>
+<c>* Display result text overlay</c>
+<l>if (IsNG = 1)</l>
+<l>    ResultText := 'NG'</l>
+<l>    TextColor := 'red'</l>
+<l>else</l>
+<l>    ResultText := 'OK'</l>
+<l>    TextColor := 'green'</l>
+<l>endif</l>
+<c></c>
+<l>get_image_size (Image, ImgWidth, ImgHeight)</l>
+<c>* Top bar: status + score</c>
+<l>dev_set_color (TextColor)</l>
+<l>disp_message (WindowHandleRight, ResultText + ' | Score: ' \</l>
+<l>               + AnomalyScore$'.4f', 'window', 12, 12, TextColor, 'false')</l>
+<c>* Bottom bar: defect count</c>
+<l>if (NumDefects &gt; 0)</l>
+<l>    disp_message (WindowHandleRight, 'Defects: ' + NumDefects, \</l>
+<l>                   'window', ImgHeight - 30, 12, 'red', 'false')</l>
+<l>endif</l>
+<c></c>
+<c>* Optionally save the result image</c>
+<l>if (|SavePath| &gt; 0)</l>
+<l>    * Dump the right window content to file</l>
+<l>    dump_window_image (ResultImage, WindowHandleRight)</l>
+<l>    write_image (ResultImage, 'png', 0, SavePath)</l>
+<l>endif</l>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="visualize">
+<parameters/>
+</docu>
+</procedure>
 
-return ()
-          ]]>
-        </body>
-      </implementation>
-    </procedure>
-    <procedure>
-      <name>infer</name>
-      <short_description>Run GC anomaly detection inference and classify OK/NG</short_description>
-      <parameter_list>
-        <parameter>
-          <name>DLModelHandle</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>DLSample</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>AnomalyThreshold</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>IsNG</name>
-          <type>output</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>AnomalyScore</name>
-          <type>output</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>AnomalyImage</name>
-          <type>output</type>
-          <sem_type>image</sem_type>
-        </parameter>
-      </parameter_list>
-      <implementation>
-        <body>
-          <![CDATA[
-* Run the model
-apply_dl_model (DLModelHandle, DLSample, [], DLResult)
+<procedure name="batch_process">
+<interface>
+<parameter name="InputFolder" type="input"/>
+<parameter name="OutputFolder" type="input"/>
+<parameter name="DLModelHandle" type="input"/>
+<parameter name="DLPreprocessParams" type="input"/>
+<parameter name="AnomalyThreshold" type="input"/>
+<parameter name="RegionThreshold" type="input"/>
+<parameter name="MinArea" type="input"/>
+<parameter name="WindowHandleLeft" type="input"/>
+<parameter name="WindowHandleRight" type="input"/>
+</interface>
+<body>
+<c>* Ensure output folder exists</c>
+<l>file_exists (OutputFolder, FileExists)</l>
+<l>if (FileExists = 0)</l>
+<l>    make_dir (OutputFolder)</l>
+<l>endif</l>
+<c></c>
+<c>* List all image files in the input folder</c>
+<l>list_image_files (InputFolder, 'default', [], ImageFiles)</l>
+<c></c>
+<c>* Extract just the file count from the tuple</c>
+<c>* ImageFiles is a tuple of full paths</c>
+<l>tuple_length (ImageFiles, TotalImages)</l>
+<c></c>
+<c>* Initialize counters</c>
+<l>CountOK := 0</l>
+<l>CountNG := 0</l>
+<c></c>
+<c>* Process each image</c>
+<l>for Index := 0 to TotalImages - 1 by 1</l>
+<l>    * Get current image path</l>
+<l>    tuple_select (ImageFiles, Index, CurrentImagePath)</l>
+<c></c>
+<l>    * Read and process with error handling</l>
+<l>    try</l>
+<l>        read_image (CurrentImage, CurrentImagePath)</l>
+<c></c>
+<l>        * Run the detection pipeline</l>
+<l>        preprocess (CurrentImage, DLPreprocessParams, DLSample)</l>
+<l>        infer (DLModelHandle, DLSample, AnomalyThreshold, IsNG, AnomalyScore, AnomalyImage)</l>
+<l>        localize (AnomalyImage, RegionThreshold, MinArea, DefectRegions, BoundingBoxes, NumDefects)</l>
+<c></c>
+<l>        * Build save path</l>
+<l>        if (IsNG = 1)</l>
+<l>            Prefix := 'NG'</l>
+<l>            CountNG := CountNG + 1</l>
+<l>        else</l>
+<l>            Prefix := 'OK'</l>
+<l>            CountOK := CountOK + 1</l>
+<l>        endif</l>
+<c></c>
+<l>        * Zero-padded sequence number</l>
+<l>        tuple_string (Index, '04d', SeqStr)</l>
+<l>        SavePath := OutputFolder + '/' + Prefix + '_' + SeqStr + '.png'</l>
+<c></c>
+<l>        * Display and save</l>
+<l>        visualize (CurrentImage, AnomalyImage, IsNG, AnomalyScore, \</l>
+<l>                   BoundingBoxes, NumDefects, WindowHandleLeft, \</l>
+<l>                   WindowHandleRight, SavePath)</l>
+<c></c>
+<l>        * Progress feedback in console</l>
+<l>        dev_disp_text ('Processing ' + (Index + 1) + '/' + TotalImages \</l>
+<l>                       + '  OK:' + CountOK + '  NG:' + CountNG, \</l>
+<l>                       'window', 'bottom', 'right', 'white', [], [])</l>
+<c></c>
+<l>        * Brief pause so user can see each result (adjust as needed)</l>
+<l>        wait_seconds (0.5)</l>
+<c></c>
+<l>    catch (Exception)</l>
+<l>        * Single image failure does not stop batch</l>
+<l>        dev_disp_text ('Error on ' + CurrentImagePath + ': ' + Exception, \</l>
+<l>                       'window', 'bottom', 'right', 'red', [], [])</l>
+<l>        wait_seconds (1)</l>
+<l>    endtry</l>
+<c></c>
+<l>endfor</l>
+<c></c>
+<c>* Final summary (open additional window, keep caller's windows intact)</c>
+<l>dev_open_window (0, 0, 400, 200, 'black', SummaryWindow)</l>
+<l>SummaryText := 'Batch Complete'</l>
+<l>SummaryText[1] := 'Total: ' + TotalImages</l>
+<l>SummaryText[2] := 'OK: ' + CountOK</l>
+<l>SummaryText[3] := 'NG: ' + CountNG</l>
+<l>disp_message (SummaryWindow, SummaryText, 'window', 20, 20, 'white', 'false')</l>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="batch_process">
+<parameters/>
+</docu>
+</procedure>
 
-* Extract results from the result dictionary
-get_dict_tuple (DLResult, 'anomaly_image', AnomalyImage)
-get_dict_tuple (DLResult, 'anomaly_score', AnomalyScore)
+<procedure name="main">
+<interface/>
+<body>
+<c>*==========================================================================</c>
+<c>* Transistor Defect Inspection System</c>
+<c>*==========================================================================</c>
+<c>* Uses a pre-trained DLT GC Anomaly Detection model to inspect transistor</c>
+<c>* images and detect defects with anomaly heatmap visualization.</c>
+<c>*</c>
+<c>* Model training date: 2026-05-07</c>
+<c>* Input size: 256x256, 3 channels</c>
+<c>*==========================================================================</c>
+<c></c>
+<c>*==========================================================================</c>
+<c>* CONFIGURATION -- Adjust these values for your setup</c>
+<c>*==========================================================================</c>
+<c></c>
+<c>* Paths (use forward slashes)</c>
+<l>ModelPath := 'E:/halcon_project/dlt_project/model_训练-260507-151052_opt.hdl'</l>
+<l>DictPath := 'E:/halcon_project/dlt_project/model_训练-260507-151052_opt_dl_preprocess_params.hdict'</l>
+<l>OutputFolder := 'E:/halcon_project/output'</l>
+<c></c>
+<c>* Detection thresholds -- tune these after initial testing</c>
+<l>AnomalyThreshold := 0.5      * Score above which image is NG (0.0 to 1.0 typically)</l>
+<l>RegionThreshold := 30         * Pixel value threshold for anomaly map binarization [0-255]</l>
+<l>MinArea := 50                 * Minimum defect region area in pixels (filters noise)</l>
+<c></c>
+<c>*==========================================================================</c>
+<c>* MAIN -- Select mode and run</c>
+<c>*==========================================================================</c>
+<c></c>
+<c>* Close any open windows first</c>
+<l>dev_close_window ()</l>
+<l>dev_update_off ()</l>
+<c></c>
+<c>* Load the model (done once for either mode)</c>
+<l>try</l>
+<l>    load_model (ModelPath, DictPath, DLModelHandle, DLPreprocessParams)</l>
+<l>catch (Exception)</l>
+<l>    dev_disp_text ('FATAL: Failed to load model: ' + Exception, \</l>
+<l>                   'window', 'center', 'center', 'red', [], [])</l>
+<l>    stop ()</l>
+<l>endtry</l>
+<c></c>
+<c>* Mode selection dialog</c>
+<l>dev_disp_text ('Select Mode: 1 = Single Image | 2 = Batch Folder', \</l>
+<l>               'window', 'center', 'center', 'white', [], [])</l>
+<l>Mode := 1</l>
+<c></c>
+<c>* --- Mode 1: Single Image Inspection ---</c>
+<l>if (Mode = 1)</l>
+<l>    * Select an image file</l>
+<l>    read_image (TestImage, 'E:/halcon_project/dataset/transistor/test/bent_lead/000.png')</l>
+<l>    * TODO after testing: replace with dev_get_dialog or hardcoded path</l>
+<c></c>
+<l>    * Create display windows</l>
+<l>    dev_close_window ()</l>
+<l>    get_image_size (TestImage, ImgWidth, ImgHeight)</l>
+<l>    * Scale display to 512x512 while keeping aspect</l>
+<l>    DispSize := 512</l>
+<l>    dev_open_window (0, 0, DispSize, DispSize, 'black', WindowHandleLeft)</l>
+<l>    dev_open_window (0, DispSize + 10, DispSize, DispSize, 'black', WindowHandleRight)</l>
+<l>    dev_set_part (0, 0, ImgHeight - 1, ImgWidth - 1)</l>
+<c></c>
+<l>    * Run pipeline</l>
+<l>    preprocess (TestImage, DLPreprocessParams, DLSample)</l>
+<l>    infer (DLModelHandle, DLSample, AnomalyThreshold, IsNG, AnomalyScore, AnomalyImage)</l>
+<l>    localize (AnomalyImage, RegionThreshold, MinArea, DefectRegions, BoundingBoxes, NumDefects)</l>
+<l>    visualize (TestImage, AnomalyImage, IsNG, AnomalyScore, \</l>
+<l>               BoundingBoxes, NumDefects, WindowHandleLeft, WindowHandleRight, '')</l>
+<c></c>
+<l>    * Keep windows open</l>
+<l>    dev_disp_text ('Press F5 to continue...', 'window', 'bottom', 'right', 'white', [], [])</l>
+<l>    stop ()</l>
+<c></c>
+<c>* --- Mode 2: Batch Folder Processing ---</c>
+<l>elseif (Mode = 2)</l>
+<l>    * Select input folder containing images</l>
+<l>    InputFolder := 'E:/halcon_project/dataset/transistor/test/good'</l>
+<l>    * TODO after testing: replace with dev_get_dialog or hardcoded path</l>
+<c></c>
+<l>    * Create display windows (smaller for batch mode)</l>
+<l>    dev_close_window ()</l>
+<l>    dev_open_window (0, 0, 400, 400, 'black', WindowHandleLeft)</l>
+<l>    dev_open_window (0, 420, 400, 400, 'black', WindowHandleRight)</l>
+<c></c>
+<l>    * Run batch</l>
+<l>    batch_process (InputFolder, OutputFolder, DLModelHandle, \</l>
+<l>                   DLPreprocessParams, AnomalyThreshold, \</l>
+<l>                   RegionThreshold, MinArea, WindowHandleLeft, \</l>
+<l>                   WindowHandleRight)</l>
+<c></c>
+<l>    dev_disp_text ('Batch complete. Results saved to ' + OutputFolder, \</l>
+<l>                   'window', 'bottom', 'right', 'white', [], [])</l>
+<l>    stop ()</l>
+<c></c>
+<c>* --- Invalid mode ---</c>
+<l>else</l>
+<l>    dev_disp_text ('Invalid mode selected. Set Mode := 1 or Mode := 2 \</l>
+<l>                   and re-run.', 'window', 'center', 'center', 'red', [], [])</l>
+<l>    stop ()</l>
+<l>endif</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
 
-* Classify based on threshold
-if (AnomalyScore > AnomalyThreshold)
-    IsNG := 1
-else
-    IsNG := 0
-endif
-
-return ()
-          ]]>
-        </body>
-      </implementation>
-    </procedure>
-    <procedure>
-      <name>localize</name>
-      <short_description>Extract defect regions and bounding boxes from anomaly heatmap</short_description>
-      <parameter_list>
-        <parameter>
-          <name>AnomalyImage</name>
-          <type>input</type>
-          <sem_type>image</sem_type>
-        </parameter>
-        <parameter>
-          <name>RegionThreshold</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>MinArea</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>DefectRegions</name>
-          <type>output</type>
-          <sem_type>region</sem_type>
-        </parameter>
-        <parameter>
-          <name>BoundingBoxes</name>
-          <type>output</type>
-          <sem_type>region</sem_type>
-        </parameter>
-        <parameter>
-          <name>NumDefects</name>
-          <type>output</type>
-          <sem_type></sem_type>
-        </parameter>
-      </parameter_list>
-      <implementation>
-        <body>
-          <![CDATA[
-* Scale real anomaly image to [0, 255] byte range
-scale_image_max (AnomalyImage, AnomalyImageScaled)
-
-* Threshold: pixels above RegionThreshold become the anomaly region
-threshold (AnomalyImageScaled, AnomalyRegion, RegionThreshold, 255)
-
-* Separate disconnected regions
-connection (AnomalyRegion, ConnectedRegions)
-
-* Filter out noise: keep only regions with area >= MinArea pixels
-select_shape (ConnectedRegions, DefectRegions, 'area', 'and', MinArea, 999999)
-
-* Count the remaining defect regions
-count_obj (DefectRegions, NumDefects)
-
-* Convert to bounding rectangles
-if (NumDefects > 0)
-    shape_trans (DefectRegions, BoundingBoxes, 'rectangle1')
-else
-    gen_empty_obj (BoundingBoxes)
-endif
-
-return ()
-          ]]>
-        </body>
-      </implementation>
-    </procedure>
-    <procedure>
-      <name>visualize</name>
-      <short_description>Display detection results in dual-window layout</short_description>
-      <parameter_list>
-        <parameter>
-          <name>Image</name>
-          <type>input</type>
-          <sem_type>image</sem_type>
-        </parameter>
-        <parameter>
-          <name>AnomalyImage</name>
-          <type>input</type>
-          <sem_type>image</sem_type>
-        </parameter>
-        <parameter>
-          <name>IsNG</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>AnomalyScore</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>BoundingBoxes</name>
-          <type>input</type>
-          <sem_type>region</sem_type>
-        </parameter>
-        <parameter>
-          <name>NumDefects</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>WindowHandleLeft</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>WindowHandleRight</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>SavePath</name>
-          <type>input</type>
-          <sem_type>string</sem_type>
-        </parameter>
-      </parameter_list>
-      <implementation>
-        <body>
-          <![CDATA[
-* --- Left window: original image ---
-dev_set_window (WindowHandleLeft)
-dev_display (Image)
-dev_disp_text ('Original Image', 'window', 'top', 'left', 'white', 'box', 'false')
-
-* --- Right window: result overlay ---
-dev_set_window (WindowHandleRight)
-
-* Scale anomaly image to full [0,255] byte range for visualization
-scale_image_max (AnomalyImage, AnomalyImageScaled)
-convert_image_type (AnomalyImageScaled, AnomalyImageByte, 'byte')
-
-* Display original image as base layer
-dev_display (Image)
-
-* Blend anomaly heatmap at 50% opacity over original
-* Convert both to real, scale, add, convert back to byte
-convert_image_type (Image, ImageReal, 'real')
-convert_image_type (AnomalyImageByte, AnomalyReal, 'real')
-scale_image (ImageReal, ImageBase, 0.5, 0)
-scale_image (AnomalyReal, AnomalyOverlay, 0.5, 0)
-add_image (ImageBase, AnomalyOverlay, BlendedReal, 1.0, 0)
-convert_image_type (BlendedReal, BlendedImage, 'byte')
-
-* Display the blended result
-dev_display (BlendedImage)
-
-* Draw red bounding boxes for each defect region
-if (NumDefects > 0)
-    dev_set_color ('red')
-    dev_set_line_width (2)
-    dev_set_draw ('margin')
-    dev_display (BoundingBoxes)
-endif
-
-* Display result text overlay
-if (IsNG = 1)
-    ResultText := 'NG'
-    TextColor := 'red'
-else
-    ResultText := 'OK'
-    TextColor := 'green'
-endif
-
-get_image_size (Image, ImgWidth, ImgHeight)
-* Top bar: status + score
-dev_set_color (TextColor)
-disp_message (WindowHandleRight, ResultText + ' | Score: ' + AnomalyScore$'.4f', 'window', 12, 12, TextColor, 'false')
-* Bottom bar: defect count
-if (NumDefects > 0)
-    disp_message (WindowHandleRight, 'Defects: ' + NumDefects, 'window', ImgHeight - 30, 12, 'red', 'false')
-endif
-
-* Optionally save the result image
-if (|SavePath| > 0)
-    * Dump the right window content to file
-    dump_window_image (ResultImage, WindowHandleRight)
-    write_image (ResultImage, 'png', 0, SavePath)
-endif
-
-return ()
-          ]]>
-        </body>
-      </implementation>
-    </procedure>
-    <procedure>
-      <name>batch_process</name>
-      <short_description>Process all images in a folder with results saved to output</short_description>
-      <parameter_list>
-        <parameter>
-          <name>InputFolder</name>
-          <type>input</type>
-          <sem_type>string</sem_type>
-        </parameter>
-        <parameter>
-          <name>OutputFolder</name>
-          <type>input</type>
-          <sem_type>string</sem_type>
-        </parameter>
-        <parameter>
-          <name>DLModelHandle</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>DLPreprocessParams</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>AnomalyThreshold</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>RegionThreshold</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>MinArea</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>WindowHandleLeft</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-        <parameter>
-          <name>WindowHandleRight</name>
-          <type>input</type>
-          <sem_type></sem_type>
-        </parameter>
-      </parameter_list>
-      <implementation>
-        <body>
-          <![CDATA[
-* Ensure output folder exists
-file_exists (OutputFolder, FileExists)
-if (FileExists = 0)
-    make_dir (OutputFolder)
-endif
-
-* List all image files in the input folder
-list_image_files (InputFolder, 'default', [], ImageFiles)
-
-* Extract just the file count from the tuple
-* ImageFiles is a tuple of full paths
-tuple_length (ImageFiles, TotalImages)
-
-* Initialize counters
-CountOK := 0
-CountNG := 0
-
-* Process each image
-for Index := 0 to TotalImages - 1 by 1
-    * Get current image path
-    tuple_select (ImageFiles, Index, CurrentImagePath)
-
-    * Read and process with error handling
-    try
-        read_image (CurrentImage, CurrentImagePath)
-
-        * Run the detection pipeline
-        preprocess (CurrentImage, DLPreprocessParams, DLSample)
-        infer (DLModelHandle, DLSample, AnomalyThreshold, IsNG, AnomalyScore, AnomalyImage)
-        localize (AnomalyImage, RegionThreshold, MinArea, DefectRegions, BoundingBoxes, NumDefects)
-
-        * Build save path
-        if (IsNG = 1)
-            Prefix := 'NG'
-            CountNG := CountNG + 1
-        else
-            Prefix := 'OK'
-            CountOK := CountOK + 1
-        endif
-
-        * Zero-padded sequence number
-        tuple_string (Index, '04d', SeqStr)
-        SavePath := OutputFolder + '/' + Prefix + '_' + SeqStr + '.png'
-
-        * Display and save
-        visualize (CurrentImage, AnomalyImage, IsNG, AnomalyScore, BoundingBoxes, NumDefects, WindowHandleLeft, WindowHandleRight, SavePath)
-
-        * Progress feedback in console
-        dev_disp_text ('Processing ' + (Index + 1) + '/' + TotalImages + '  OK:' + CountOK + '  NG:' + CountNG, 'window', 'bottom', 'right', 'white', [], [])
-
-        * Brief pause so user can see each result (adjust as needed)
-        wait_seconds (0.5)
-
-    catch (Exception)
-        * Single image failure does not stop batch
-        dev_disp_text ('Error on ' + CurrentImagePath + ': ' + Exception, 'window', 'bottom', 'right', 'red', [], [])
-        wait_seconds (1)
-    endtry
-
-endfor
-
-* Final summary (open additional window, keep caller's windows intact)
-dev_open_window (0, 0, 400, 200, 'black', SummaryWindow)
-SummaryText := 'Batch Complete'
-SummaryText[1] := 'Total: ' + TotalImages
-SummaryText[2] := 'OK: ' + CountOK
-SummaryText[3] := 'NG: ' + CountNG
-disp_message (SummaryWindow, SummaryText, 'window', 20, 20, 'white', 'false')
-
-return ()
-          ]]>
-        </body>
-      </implementation>
-    </procedure>
-  </procedure_list>
-  <body>
-    <![CDATA[
-*==========================================================================
-* Transistor Defect Inspection System
-*==========================================================================
-* Uses a pre-trained DLT GC Anomaly Detection model to inspect transistor
-* images and detect defects with anomaly heatmap visualization.
-*
-* Model training date: 2026-05-07
-* Input size: 256x256, 3 channels
-*==========================================================================
-
-*==========================================================================
-* CONFIGURATION -- Adjust these values for your setup
-*==========================================================================
-
-* Paths (use forward slashes)
-ModelPath := 'E:/halcon_project/dlt_project/model_训练-260507-151052_opt.hdl'
-DictPath := 'E:/halcon_project/dlt_project/model_训练-260507-151052_opt_dl_preprocess_params.hdict'
-OutputFolder := 'E:/halcon_project/output'
-
-* Detection thresholds -- tune these after initial testing
-AnomalyThreshold := 0.5      * Score above which image is NG (0.0 to 1.0 typically)
-RegionThreshold := 30         * Pixel value threshold for anomaly map binarization [0-255]
-MinArea := 50                 * Minimum defect region area in pixels (filters noise)
-
-*==========================================================================
-* MAIN -- Select mode and run
-*==========================================================================
-
-* Close any open windows first
-dev_close_window ()
-dev_update_off ()
-
-* Load the model (done once for either mode)
-try
-    load_model (ModelPath, DictPath, DLModelHandle, DLPreprocessParams)
-catch (Exception)
-    dev_disp_text ('FATAL: Failed to load model: ' + Exception, 'window', 'center', 'center', 'red', [], [])
-    stop ()
-endtry
-
-* Mode selection dialog
-dev_disp_text ('Select Mode: 1 = Single Image | 2 = Batch Folder', 'window', 'center', 'center', 'white', [], [])
-Mode := 1
-
-* --- Mode 1: Single Image Inspection ---
-if (Mode = 1)
-    * Select an image file
-    read_image (TestImage, 'E:/halcon_project/dataset/transistor/test/bent_lead/000.png')
-    * TODO after testing: replace with dev_get_dialog or hardcoded path
-
-    * Create display windows
-    dev_close_window ()
-    get_image_size (TestImage, ImgWidth, ImgHeight)
-    * Scale display to 512x512 while keeping aspect
-    DispSize := 512
-    dev_open_window (0, 0, DispSize, DispSize, 'black', WindowHandleLeft)
-    dev_open_window (0, DispSize + 10, DispSize, DispSize, 'black', WindowHandleRight)
-    dev_set_part (0, 0, ImgHeight - 1, ImgWidth - 1)
-
-    * Run pipeline
-    preprocess (TestImage, DLPreprocessParams, DLSample)
-    infer (DLModelHandle, DLSample, AnomalyThreshold, IsNG, AnomalyScore, AnomalyImage)
-    localize (AnomalyImage, RegionThreshold, MinArea, DefectRegions, BoundingBoxes, NumDefects)
-    visualize (TestImage, AnomalyImage, IsNG, AnomalyScore, BoundingBoxes, NumDefects, WindowHandleLeft, WindowHandleRight, '')
-
-    * Keep windows open
-    dev_disp_text ('Press F5 to continue...', 'window', 'bottom', 'right', 'white', [], [])
-    stop ()
-
-* --- Mode 2: Batch Folder Processing ---
-elseif (Mode = 2)
-    * Select input folder containing images
-    InputFolder := 'E:/halcon_project/dataset/transistor/test/good'
-    * TODO after testing: replace with dev_get_dialog or hardcoded path
-
-    * Create display windows (smaller for batch mode)
-    dev_close_window ()
-    dev_open_window (0, 0, 400, 400, 'black', WindowHandleLeft)
-    dev_open_window (0, 420, 400, 400, 'black', WindowHandleRight)
-
-    * Run batch
-    batch_process (InputFolder, OutputFolder, DLModelHandle, DLPreprocessParams, AnomalyThreshold, RegionThreshold, MinArea, WindowHandleLeft, WindowHandleRight)
-
-    dev_disp_text ('Batch complete. Results saved to ' + OutputFolder, 'window', 'bottom', 'right', 'white', [], [])
-    stop ()
-
-* --- Invalid mode ---
-else
-    dev_disp_text ('Invalid mode selected. Set Mode := 1 or Mode := 2 and re-run.', 'window', 'center', 'center', 'red', [], [])
-    stop ()
-endif
-    ]]>
-  </body>
-</hdprogram>
+</hdevelop>
