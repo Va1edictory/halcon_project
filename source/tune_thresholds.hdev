@@ -1,0 +1,62 @@
+*==========================================================================
+* Threshold Tuning Script
+*==========================================================================
+* Run on samples from each class to find optimal AnomalyThreshold,
+* RegionThreshold, and MinArea values.
+*==========================================================================
+
+ModelPath := 'E:/halcon_project/dlt_project/model_训练-260507-151052_opt.hdl'
+DictPath := 'E:/halcon_project/dlt_project/model_训练-260507-151052_opt_dl_preprocess_params.hdict'
+
+load_model (ModelPath, DictPath, DLModelHandle, DLPreprocessParams)
+
+* Test images — one from each category
+ImagePaths := []
+ImagePaths[0] := 'E:/halcon_project/dataset/transistor/test/good/000.png'
+ImagePaths[1] := 'E:/halcon_project/dataset/transistor/test/bent_lead/000.png'
+ImagePaths[2] := 'E:/halcon_project/dataset/transistor/test/cut_lead/000.png'
+ImagePaths[3] := 'E:/halcon_project/dataset/transistor/test/damaged_case/000.png'
+ImagePaths[4] := 'E:/halcon_project/dataset/transistor/test/misplaced/000.png'
+
+tuple_length (ImagePaths, NumImages)
+
+* Header for results table
+ResultHeader := 'Image | AnomalyScore | MaxPixelValue | SuggestedRegionThr'
+ResultLines := []
+
+for i := 0 to NumImages - 1 by 1
+    read_image (Image, ImagePaths[i])
+    preprocess (Image, DLPreprocessParams, DLSample)
+
+    * Inference
+    apply_dl_model (DLModelHandle, DLSample, [], DLResult)
+    get_dict_tuple (DLResult, 'anomaly_score', AnomalyScore)
+    get_dict_tuple (DLResult, 'anomaly_image', AnomalyImage)
+
+    * Analyze anomaly image values
+    min_max_gray (AnomalyImage, AnomalyImage, 0, MinVal, MaxVal, Range)
+    intensity (AnomalyImage, AnomalyImage, MeanVal, Deviation)
+
+    * Suggested region threshold = mean + 2*deviation
+    SuggestedThr := MeanVal + 2 * Deviation
+
+    * Format result
+    parse_filename (ImagePaths[i], BaseName, Extension, Directory)
+    ResultLines[i] := BaseName + ' | ' + AnomalyScore$'.4f' + ' | ' + MaxVal$'.2f' + ' | ' + SuggestedThr$'.2f'
+endfor
+
+* Display results
+dev_close_window ()
+dev_open_window (0, 0, 700, 400, 'black', ResultWindow)
+dev_set_window (ResultWindow)
+
+disp_message (ResultWindow, '=== Threshold Tuning Results ===', 'window', 12, 12, 'white', 'false')
+for i := 0 to |ResultLines| - 1 by 1
+    disp_message (ResultWindow, ResultLines[i], 'window', 30 + i * 18, 12, 'cyan', 'false')
+endfor
+
+disp_message (ResultWindow, '', 'window', 30 + |ResultLines| * 18 + 10, 12, 'white', 'false')
+disp_message (ResultWindow, 'Set AnomalyThreshold between good max and defect min score.', 'window', 30 + |ResultLines| * 18 + 28, 12, 'yellow', 'false')
+disp_message (ResultWindow, 'Set RegionThreshold to ~ SuggestedRegionThr of worst defect.', 'window', 30 + |ResultLines| * 18 + 46, 12, 'yellow', 'false')
+
+stop ()
