@@ -30,6 +30,8 @@ count_obj (DefectRegions, NumDefects)
 * Convert to bounding rectangles
 if (NumDefects > 0)
     shape_trans (DefectRegions, BoundingBoxes, 'rectangle1')
+else
+    gen_empty_obj (BoundingBoxes)
 endif
 
 return ()
