@@ -1,0 +1,29 @@
+* PROCEDURE: infer
+*
+* Run GC anomaly detection inference and classify result as OK/NG.
+*
+* INPUT:
+*   DLModelHandle    — loaded DL model handle (handle)
+*   DLSample         — preprocessed sample dict (dict)
+*   AnomalyThreshold — score above which image is classified as NG (real)
+*
+* OUTPUT:
+*   IsNG         — 1 = defective, 0 = OK (integer)
+*   AnomalyScore — overall anomaly score (real)
+*   AnomalyImage — anomaly heatmap (real-valued image)
+
+* Run the model
+apply_dl_model (DLModelHandle, DLSample, [], DLResult)
+
+* Extract results from the result dictionary
+get_dict_tuple (DLResult, 'anomaly_image', AnomalyImage)
+get_dict_tuple (DLResult, 'anomaly_score', AnomalyScore)
+
+* Classify based on threshold
+if (AnomalyScore > AnomalyThreshold)
+    IsNG := 1
+else
+    IsNG := 0
+endif
+
+return ()
