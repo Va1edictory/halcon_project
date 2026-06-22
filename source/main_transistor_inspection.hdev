@@ -1,0 +1,91 @@
+*==========================================================================
+* Transistor Defect Inspection System
+*==========================================================================
+* Uses a pre-trained DLT GC Anomaly Detection model to inspect transistor
+* images and detect defects with anomaly heatmap visualization.
+*
+* Model training date: 2026-05-07
+* Input size: 256x256, 3 channels
+*==========================================================================
+
+*==========================================================================
+* CONFIGURATION -- Adjust these values for your setup
+*==========================================================================
+
+* Paths (use forward slashes)
+ModelPath := 'E:/halcon_project/dlt_project/model_训练-260507-151052_opt.hdl'
+DictPath := 'E:/halcon_project/dlt_project/model_训练-260507-151052_opt_dl_preprocess_params.hdict'
+OutputFolder := 'E:/halcon_project/output'
+
+* Detection thresholds -- tune these after initial testing
+AnomalyThreshold := 0.5      * Score above which image is NG (0.0 to 1.0 typically)
+RegionThreshold := 30         * Pixel value threshold for anomaly map binarization [0-255]
+MinArea := 50                 * Minimum defect region area in pixels (filters noise)
+
+*==========================================================================
+* MAIN -- Select mode and run
+*==========================================================================
+
+* Close any open windows first
+dev_close_window ()
+dev_update_off ()
+
+* Load the model (done once for either mode)
+try
+    load_model (ModelPath, DictPath, DLModelHandle, DLPreprocessParams)
+catch (Exception)
+    dev_disp_text ('FATAL: Failed to load model: ' + Exception, 'window', 'center', 'center', 'red', [], [])
+    stop ()
+endtry
+
+* Mode selection dialog
+dev_disp_text ('Select Mode: 1 = Single Image | 2 = Batch Folder', 'window', 'center', 'center', 'white', [], [])
+Mode := 0
+
+* --- Mode 1: Single Image Inspection ---
+if (Mode = 1)
+    * Select an image file
+    read_image (TestImage, 'E:/halcon_project/dataset/transistor/test/bent_lead/000.png')
+    * TODO after testing: replace with dev_get_dialog or hardcoded path
+
+    * Create display windows
+    dev_close_window ()
+    get_image_size (TestImage, ImgWidth, ImgHeight)
+    * Scale display to 512x512 while keeping aspect
+    DispSize := 512
+    dev_open_window (0, 0, DispSize, DispSize, 'black', WindowHandleLeft)
+    dev_open_window (0, DispSize + 10, DispSize, DispSize, 'black', WindowHandleRight)
+    dev_set_part (0, 0, ImgHeight - 1, ImgWidth - 1)
+
+    * Run pipeline
+    preprocess (TestImage, DLPreprocessParams, DLSample)
+    infer (DLModelHandle, DLSample, AnomalyThreshold, IsNG, AnomalyScore, AnomalyImage)
+    localize (AnomalyImage, RegionThreshold, MinArea, DefectRegions, BoundingBoxes, NumDefects)
+    visualize (TestImage, AnomalyImage, IsNG, AnomalyScore, BoundingBoxes, NumDefects, WindowHandleLeft, WindowHandleRight, '')
+
+    * Keep windows open
+    dev_disp_text ('Press F5 to continue...', 'window', 'bottom', 'right', 'white', [], [])
+    stop ()
+
+* --- Mode 2: Batch Folder Processing ---
+elseif (Mode = 2)
+    * Select input folder containing images
+    InputFolder := 'E:/halcon_project/dataset/transistor/test/good'
+    * TODO after testing: replace with dev_get_dialog or hardcoded path
+
+    * Create display windows (smaller for batch mode)
+    dev_close_window ()
+    dev_open_window (0, 0, 400, 400, 'black', WindowHandleLeft)
+    dev_open_window (0, 420, 400, 400, 'black', WindowHandleRight)
+
+    * Run batch
+    batch_process (InputFolder, OutputFolder, DLModelHandle, DLPreprocessParams, AnomalyThreshold, RegionThreshold, MinArea, WindowHandleLeft, WindowHandleRight)
+
+    dev_disp_text ('Batch complete. Results saved to ' + OutputFolder, 'window', 'bottom', 'right', 'white', [], [])
+    stop ()
+
+* --- Invalid mode ---
+else
+    dev_disp_text ('Invalid mode selected. Set Mode := 1 or Mode := 2 and re-run.', 'window', 'center', 'center', 'red', [], [])
+    stop ()
+endif
