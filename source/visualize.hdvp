@@ -1,0 +1,66 @@
+* PROCEDURE: visualize
+*
+* Display detection results in dual-window layout.
+*
+* INPUT:
+*   Image            — original input image (image)
+*   AnomalyImage     — anomaly heatmap (real-valued image)
+*   IsNG             — 1 = NG, 0 = OK (integer)
+*   AnomalyScore     — overall anomaly score (real)
+*   BoundingBoxes    — defect bounding rectangles (region)
+*   NumDefects       — number of defect regions (integer)
+*   WindowHandleLeft — handle for left display (original) (window)
+*   WindowHandleRight — handle for right display (result overlay) (window)
+*   SavePath         — path to save result, '' if no save (string)
+
+* --- Left window: original image ---
+dev_set_window (WindowHandleLeft)
+dev_display (Image)
+dev_disp_text ('Original Image', 'window', 'top', 'left', 'white', 'box', 'false')
+
+* --- Right window: result overlay ---
+dev_set_window (WindowHandleRight)
+
+* Display the anomaly image with a color LUT for heatmap effect
+dev_set_lut ('hot')
+* Convert real anomaly to byte for display
+convert_image_type (AnomalyImage, AnomalyImageByte, 'byte')
+dev_display (AnomalyImageByte)
+
+* Reset LUT to default for other overlays
+dev_set_lut ('default')
+
+* Draw red bounding boxes for each defect region
+if (NumDefects > 0)
+    dev_set_color ('red')
+    dev_set_line_width (2)
+    dev_set_draw ('margin')
+    dev_display (BoundingBoxes)
+endif
+
+* Display result text overlay
+if (IsNG = 1)
+    ResultText := 'NG'
+    TextColor := 'red'
+else
+    ResultText := 'OK'
+    TextColor := 'green'
+endif
+
+get_image_size (Image, ImgWidth, ImgHeight)
+* Top bar: status + score
+dev_set_color (TextColor)
+disp_message (WindowHandleRight, ResultText + ' | Score: ' + AnomalyScore$'.4f', 'window', 12, 12, TextColor, 'false')
+* Bottom bar: defect count
+if (NumDefects > 0)
+    disp_message (WindowHandleRight, 'Defects: ' + NumDefects, 'window', ImgHeight - 30, 12, 'red', 'false')
+endif
+
+* Optionally save the result image
+if (|SavePath| > 0)
+    * Dump the right window content to file
+    dump_window_image (ResultImage, WindowHandleRight)
+    write_image (ResultImage, 'png', 0, SavePath)
+endif
+
+return ()
