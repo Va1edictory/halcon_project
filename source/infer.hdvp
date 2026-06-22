@@ -1,17 +1,43 @@
-* PROCEDURE: infer
-*
-* Run GC anomaly detection inference and classify result as OK/NG.
-*
-* INPUT:
-*   DLModelHandle    — loaded DL model handle (handle)
-*   DLSample         — preprocessed sample dict (dict)
-*   AnomalyThreshold — score above which image is classified as NG (real)
-*
-* OUTPUT:
-*   IsNG         — 1 = defective, 0 = OK (integer)
-*   AnomalyScore — overall anomaly score (real)
-*   AnomalyImage — anomaly heatmap (real-valued image)
-
+<?xml version="1.0" encoding="UTF-8"?>
+<procedure>
+  <name>infer</name>
+  <short_description>Run GC anomaly detection inference and classify OK/NG</short_description>
+  <location>external</location>
+  <parameter_list>
+    <parameter>
+      <name>DLModelHandle</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>DLSample</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>AnomalyThreshold</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>IsNG</name>
+      <type>output</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>AnomalyScore</name>
+      <type>output</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>AnomalyImage</name>
+      <type>output</type>
+      <sem_type>image</sem_type>
+    </parameter>
+  </parameter_list>
+  <implementation>
+    <body>
+      <![CDATA[
 * Run the model
 apply_dl_model (DLModelHandle, DLSample, [], DLResult)
 
@@ -27,3 +53,7 @@ else
 endif
 
 return ()
+      ]]>
+    </body>
+  </implementation>
+</procedure>

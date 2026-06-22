@@ -1,18 +1,58 @@
-* PROCEDURE: batch_process
-*
-* Process all images in a folder, save results.
-*
-* INPUT:
-*   InputFolder        — directory containing image files (string)
-*   OutputFolder       — directory to save result overlays (string)
-*   DLModelHandle      — loaded DL model (handle)
-*   DLPreprocessParams — preprocessing params dict (dict)
-*   AnomalyThreshold   — OK/NG score threshold (real)
-*   RegionThreshold    — anomaly map binarization threshold (real)
-*   MinArea            — minimum defect region area (integer)
-*   WindowHandleLeft   — left display window (window)
-*   WindowHandleRight  — right display window (window)
-
+<?xml version="1.0" encoding="UTF-8"?>
+<procedure>
+  <name>batch_process</name>
+  <short_description>Process all images in a folder with results saved to output</short_description>
+  <location>external</location>
+  <parameter_list>
+    <parameter>
+      <name>InputFolder</name>
+      <type>input</type>
+      <sem_type>string</sem_type>
+    </parameter>
+    <parameter>
+      <name>OutputFolder</name>
+      <type>input</type>
+      <sem_type>string</sem_type>
+    </parameter>
+    <parameter>
+      <name>DLModelHandle</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>DLPreprocessParams</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>AnomalyThreshold</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>RegionThreshold</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>MinArea</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>WindowHandleLeft</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>WindowHandleRight</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+  </parameter_list>
+  <implementation>
+    <body>
+      <![CDATA[
 * Ensure output folder exists
 file_exists (OutputFolder, FileExists)
 if (FileExists = 0)
@@ -83,3 +123,7 @@ SummaryText[3] := 'NG: ' + CountNG
 disp_message (SummaryWindow, SummaryText, 'window', 20, 20, 'white', 'false')
 
 return ()
+      ]]>
+    </body>
+  </implementation>
+</procedure>

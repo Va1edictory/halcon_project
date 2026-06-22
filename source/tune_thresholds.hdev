@@ -1,3 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdprogram>
+  <procedure_list/>
+  <body>
+    <![CDATA[
 *==========================================================================
 * Threshold Tuning Script
 *==========================================================================
@@ -64,3 +69,6 @@ disp_message (ResultWindow, 'Set AnomalyThreshold between good max and defect mi
 disp_message (ResultWindow, 'Set RegionThreshold to ~ SuggestedRegionThr of worst defect.', 'window', 30 + |ResultLines| * 18 + 46, 12, 'yellow', 'false')
 
 stop ()
+    ]]>
+  </body>
+</hdprogram>

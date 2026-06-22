@@ -1,18 +1,58 @@
-* PROCEDURE: visualize
-*
-* Display detection results in dual-window layout.
-*
-* INPUT:
-*   Image            — original input image (image)
-*   AnomalyImage     — anomaly heatmap (real-valued image)
-*   IsNG             — 1 = NG, 0 = OK (integer)
-*   AnomalyScore     — overall anomaly score (real)
-*   BoundingBoxes    — defect bounding rectangles (region)
-*   NumDefects       — number of defect regions (integer)
-*   WindowHandleLeft — handle for left display (original) (window)
-*   WindowHandleRight — handle for right display (result overlay) (window)
-*   SavePath         — path to save result, '' if no save (string)
-
+<?xml version="1.0" encoding="UTF-8"?>
+<procedure>
+  <name>visualize</name>
+  <short_description>Display detection results in dual-window layout</short_description>
+  <location>external</location>
+  <parameter_list>
+    <parameter>
+      <name>Image</name>
+      <type>input</type>
+      <sem_type>image</sem_type>
+    </parameter>
+    <parameter>
+      <name>AnomalyImage</name>
+      <type>input</type>
+      <sem_type>image</sem_type>
+    </parameter>
+    <parameter>
+      <name>IsNG</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>AnomalyScore</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>BoundingBoxes</name>
+      <type>input</type>
+      <sem_type>region</sem_type>
+    </parameter>
+    <parameter>
+      <name>NumDefects</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>WindowHandleLeft</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>WindowHandleRight</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>SavePath</name>
+      <type>input</type>
+      <sem_type>string</sem_type>
+    </parameter>
+  </parameter_list>
+  <implementation>
+    <body>
+      <![CDATA[
 * --- Left window: original image ---
 dev_set_window (WindowHandleLeft)
 dev_display (Image)
@@ -74,3 +114,7 @@ if (|SavePath| > 0)
 endif
 
 return ()
+      ]]>
+    </body>
+  </implementation>
+</procedure>

@@ -1,17 +1,43 @@
-* PROCEDURE: localize
-*
-* Extract defect regions and bounding boxes from anomaly heatmap.
-*
-* INPUT:
-*   AnomalyImage    — real-valued anomaly heatmap from infer (image)
-*   RegionThreshold — threshold value for binarization (0-255) (real)
-*   MinArea         — minimum region area in pixels to filter noise (integer)
-*
-* OUTPUT:
-*   DefectRegions — connected, filtered anomaly regions (region)
-*   BoundingBoxes — bounding rectangles (rectangle1) for each region (region)
-*   NumDefects    — number of defect regions found (integer)
-
+<?xml version="1.0" encoding="UTF-8"?>
+<procedure>
+  <name>localize</name>
+  <short_description>Extract defect regions and bounding boxes from anomaly heatmap</short_description>
+  <location>external</location>
+  <parameter_list>
+    <parameter>
+      <name>AnomalyImage</name>
+      <type>input</type>
+      <sem_type>image</sem_type>
+    </parameter>
+    <parameter>
+      <name>RegionThreshold</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>MinArea</name>
+      <type>input</type>
+      <sem_type></sem_type>
+    </parameter>
+    <parameter>
+      <name>DefectRegions</name>
+      <type>output</type>
+      <sem_type>region</sem_type>
+    </parameter>
+    <parameter>
+      <name>BoundingBoxes</name>
+      <type>output</type>
+      <sem_type>region</sem_type>
+    </parameter>
+    <parameter>
+      <name>NumDefects</name>
+      <type>output</type>
+      <sem_type></sem_type>
+    </parameter>
+  </parameter_list>
+  <implementation>
+    <body>
+      <![CDATA[
 * Scale real anomaly image to [0, 255] byte range
 scale_image_max (AnomalyImage, AnomalyImageScaled)
 
@@ -35,3 +61,7 @@ else
 endif
 
 return ()
+      ]]>
+    </body>
+  </implementation>
+</procedure>
