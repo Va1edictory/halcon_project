@@ -1,0 +1,24 @@
+* load_model — Load DLT model and preprocessing parameters
+*
+* Input:
+*   ModelPath — path to trained .hdl model file
+*   DictPath  — path to _dl_preprocess_params.hdict
+* Output:
+*   DLModelHandle      — handle to the loaded DL model
+*   DLPreprocessParams — dict with preprocessing configuration
+
+* Load the deep learning model
+read_dl_model (ModelPath, DLModelHandle)
+
+* Load preprocessing parameters dictionary
+read_dict (DictPath, [], [], DLPreprocessParams)
+
+* Log what was loaded
+get_dict_tuple (DLPreprocessParams, 'model_type', ModelType)
+get_dict_tuple (DLPreprocessParams, 'image_width', ImageWidth)
+get_dict_tuple (DLPreprocessParams, 'image_height', ImageHeight)
+
+dev_get_window (CurrentWindow)
+dev_disp_text ('Model loaded: ' + ModelType + ' | Input: ' + ImageWidth + 'x' + ImageHeight, 'window', 'top', 'left', 'white', [], [])
+
+return ()
