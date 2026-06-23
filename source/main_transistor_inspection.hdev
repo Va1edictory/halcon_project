@@ -79,7 +79,7 @@
 <c></c>
 <c>    * --- INFER (inline) ---</c>
 <l>    apply_dl_model (DLModelHandle, DLSample, [], DLResult)</l>
-<l>    get_dict_tuple (DLResult, 'anomaly_image', AnomalyImage)</l>
+<l>    get_dict_object (AnomalyImage, DLResult, 'anomaly_image')</l>
 <l>    get_dict_tuple (DLResult, 'anomaly_score', AnomalyScore)</l>
 <l>    if (AnomalyScore &gt; AnomalyThreshold)</l>
 <l>        IsNG := 1</l>
@@ -191,7 +191,7 @@
 <c></c>
 <c>            * INFER</c>
 <l>            apply_dl_model (DLModelHandle, DLSample, [], DLResult)</l>
-<l>            get_dict_tuple (DLResult, 'anomaly_image', AnomalyImage)</l>
+<l>            get_dict_object (AnomalyImage, DLResult, 'anomaly_image')</l>
 <l>            get_dict_tuple (DLResult, 'anomaly_score', AnomalyScore)</l>
 <l>            if (AnomalyScore &gt; AnomalyThreshold)</l>
 <l>                IsNG := 1</l>
