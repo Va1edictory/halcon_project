@@ -111,9 +111,7 @@
 <c>    * Scale anomaly and display with hot LUT for heatmap effect</c>
 <l>    scale_image_max (AnomalyImage, AnomalyHeatmapScaled)</l>
 <l>    convert_image_type (AnomalyHeatmapScaled, AnomalyHeatmapByte, 'byte')</l>
-<l>    dev_set_lut ('hot')</l>
 <l>    dev_display (AnomalyHeatmapByte)</l>
-<l>    dev_set_lut ('default')</l>
 <c></c>
 <c>    * Red boxes</c>
 <l>    if (NumDefects &gt; 0)</l>
@@ -229,9 +227,7 @@
 <c>            * Scale anomaly and display with hot LUT for heatmap effect</c>
 <l>            scale_image_max (AnomalyImage, AnomalyHeatmapScaled)</l>
 <l>            convert_image_type (AnomalyHeatmapScaled, AnomalyHeatmapByte, 'byte')</l>
-<l>            dev_set_lut ('hot')</l>
 <l>            dev_display (AnomalyHeatmapByte)</l>
-<l>            dev_set_lut ('default')</l>
 <c></c>
 <l>            if (NumDefects &gt; 0)</l>
 <l>                dev_set_color ('red')</l>
