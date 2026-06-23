@@ -128,9 +128,9 @@
 <l>        TextColor := 'green'</l>
 <l>    endif</l>
 <l>    get_image_size (TestImage, ImgWidth2, ImgHeight2)</l>
-<l>    disp_message (WindowHandleRight, ResultText, 'window', ImgHeight2 / 2 - 30, -1, TextColor, 'false')</l>
+<l>    disp_message (WindowHandleRight, ResultText, 'image', ImgHeight2 / 2 - 30, -1, TextColor, 'false')</l>
 <c>    * Score and defect count at bottom</c>
-<l>    disp_message (WindowHandleRight, 'Score: ' + AnomalyScore$'.4f' + ' | Defects: ' + NumDefects, 'window', ImgHeight2 - 30, 12, 'white', 'false')</l>
+<l>    disp_message (WindowHandleRight, 'Score: ' + AnomalyScore$'.4f' + ' | Defects: ' + NumDefects, 'image', ImgHeight2 - 10, 12, 'white', 'false')</l>
 <c></c>
 <l>    dev_disp_text ('Press F5 to continue...', 'window', 'bottom', 'right', 'white', [], [])</l>
 <l>    stop ()</l>
@@ -241,9 +241,9 @@
 <l>                TextColor := 'green'</l>
 <l>            endif</l>
 <l>            get_image_size (CurrentImage, ImgWidth2, ImgHeight2)</l>
-<l>            disp_message (WindowHandleRight, ResultText, 'window', ImgHeight2 / 2 - 30, -1, TextColor, 'false')</l>
+<l>            disp_message (WindowHandleRight, ResultText, 'image', ImgHeight2 / 2 - 30, -1, TextColor, 'false')</l>
 <c>            * Score and defect count at bottom</c>
-<l>            disp_message (WindowHandleRight, 'Score: ' + AnomalyScore$'.4f' + ' | Defects: ' + NumDefects, 'window', ImgHeight2 - 30, 12, 'white', 'false')</l>
+<l>            disp_message (WindowHandleRight, 'Score: ' + AnomalyScore$'.4f' + ' | Defects: ' + NumDefects, 'image', ImgHeight2 - 10, 12, 'white', 'false')</l>
 <c></c>
 <c>            * Save</c>
 <l>            dump_window_image (ResultImage, WindowHandleRight)</l>
