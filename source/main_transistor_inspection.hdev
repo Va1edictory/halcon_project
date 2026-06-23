@@ -44,7 +44,7 @@
 <c>* MODE SELECTION</c>
 <c>*==========================================================================</c>
 <c></c>
-<l>Mode := 1</l>
+<l>Mode := 2</l>
 <c></c>
 <c>*==========================================================================</c>
 <c>* MODE 1: SINGLE IMAGE</c>
@@ -170,6 +170,7 @@
 <c></c>
 <l>        try</l>
 <l>            read_image (CurrentImage, CurrentImagePath)</l>
+<l>            get_image_size (CurrentImage, ImgWidth, ImgHeight)</l>
 <c></c>
 <c>            * PREPROCESS</c>
 <c>            * Convert to 3 channels if grayscale (model expects 3-channel input)</c>
