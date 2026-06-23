@@ -1,12 +1,125 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<hdevelop file_version="1.2" halcon_version="25.11.0.0">
-
+<hdevelop file_version="1.2" halcon_version="26.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>*==========================================================================</c>
+<c>* Transistor Defect Inspection System</c>
+<c>*==========================================================================</c>
+<c>* Uses a pre-trained DLT GC Anomaly Detection model to inspect transistor</c>
+<c>* images and detect defects with anomaly heatmap visualization.</c>
+<c>*</c>
+<c>* Model training date: 2026-05-07</c>
+<c>* Input size: 256x256, 3 channels</c>
+<c>*==========================================================================</c>
+<c></c>
+<c>*==========================================================================</c>
+<c>* CONFIGURATION -- Adjust these values for your setup</c>
+<c>*==========================================================================</c>
+<c></c>
+<c>* Paths (use forward slashes)</c>
+<l>ModelPath := 'E:/halcon_project/dlt_project/model_训练-260507-151052_opt.hdl'</l>
+<l>DictPath := 'E:/halcon_project/dlt_project/model_训练-260507-151052_opt_dl_preprocess_params.hdict'</l>
+<l>OutputFolder := 'E:/halcon_project/output'</l>
+<c></c>
+<c>* Detection thresholds -- tune these after initial testing</c>
+<l>AnomalyThreshold := 0.5      </l>
+<c>* Score above which image is NG (0.0 to 1.0 typically)</c>
+<l>RegionThreshold := 30         </l>
+<c>* Pixel value threshold for anomaly map binarization [0-255]</c>
+<l>MinArea := 50                 </l>
+<c>* Minimum defect region area in pixels (filters noise)</c>
+<c></c>
+<c>*==========================================================================</c>
+<c>* MAIN -- Select mode and run</c>
+<c>*==========================================================================</c>
+<c></c>
+<c>* Close any open windows first</c>
+<l>dev_close_window ()</l>
+<l>dev_update_off ()</l>
+<c></c>
+<c>* Load the model (done once for either mode)</c>
+<l>try</l>
+<l>    load_model (ModelPath, DictPath, DLModelHandle, DLPreprocessParams)</l>
+<l>catch (Exception)</l>
+<l>    dev_disp_text ('FATAL: Failed to load model: ' + Exception, \</l>
+<l>                   'window', 'center', 'center', 'red', [], [])</l>
+<l>    stop ()</l>
+<l>endtry</l>
+<c></c>
+<c>* Mode selection: change Mode := 2 for batch processing</c>
+<l>Mode := 1</l>
+<c></c>
+<c>* --- Mode 1: Single Image Inspection ---</c>
+<l>if (Mode = 1)</l>
+<c>    * Select an image file</c>
+<l>    read_image (TestImage, 'E:/halcon_project/dataset/transistor/test/bent_lead/000.png')</l>
+<c>    * TODO after testing: replace with dev_get_dialog or hardcoded path</c>
+<c></c>
+<c>    * Create display windows</c>
+<l>    dev_close_window ()</l>
+<l>    get_image_size (TestImage, ImgWidth, ImgHeight)</l>
+<c>    * Scale display to 512x512 while keeping aspect</c>
+<l>    DispSize := 512</l>
+<l>    dev_open_window (0, 0, DispSize, DispSize, 'black', WindowHandleLeft)</l>
+<l>    dev_open_window (0, DispSize + 10, DispSize, DispSize, 'black', WindowHandleRight)</l>
+<l>    dev_set_part (0, 0, ImgHeight - 1, ImgWidth - 1)</l>
+<c></c>
+<c>    * Run pipeline</c>
+<l>    preprocess (TestImage, DLPreprocessParams, DLSample)</l>
+<l>    infer (DLModelHandle, DLSample, AnomalyThreshold, IsNG, AnomalyScore, AnomalyImage)</l>
+<l>    localize (AnomalyImage, RegionThreshold, MinArea, DefectRegions, BoundingBoxes, NumDefects)</l>
+<l>    visualize (TestImage, AnomalyImage, IsNG, AnomalyScore, \</l>
+<l>               BoundingBoxes, NumDefects, WindowHandleLeft, WindowHandleRight, '')</l>
+<c></c>
+<c>    * Keep windows open</c>
+<l>    dev_disp_text ('Press F5 to continue...', 'window', 'bottom', 'right', 'white', [], [])</l>
+<l>    stop ()</l>
+<c></c>
+<c>* --- Mode 2: Batch Folder Processing ---</c>
+<l>elseif (Mode = 2)</l>
+<c>    * Select input folder containing images</c>
+<l>    InputFolder := 'E:/halcon_project/dataset/transistor/test/good'</l>
+<c>    * TODO after testing: replace with dev_get_dialog or hardcoded path</c>
+<c></c>
+<c>    * Create display windows (smaller for batch mode)</c>
+<l>    dev_close_window ()</l>
+<l>    dev_open_window (0, 0, 400, 400, 'black', WindowHandleLeft)</l>
+<l>    dev_open_window (0, 420, 400, 400, 'black', WindowHandleRight)</l>
+<c></c>
+<c>    * Run batch</c>
+<l>    batch_process (InputFolder, OutputFolder, DLModelHandle, \</l>
+<l>                   DLPreprocessParams, AnomalyThreshold, \</l>
+<l>                   RegionThreshold, MinArea, WindowHandleLeft, \</l>
+<l>                   WindowHandleRight)</l>
+<c></c>
+<l>    dev_disp_text ('Batch complete. Results saved to ' + OutputFolder, \</l>
+<l>                   'window', 'bottom', 'right', 'white', [], [])</l>
+<l>    stop ()</l>
+<c></c>
+<c>* --- Invalid mode ---</c>
+<l>else</l>
+<l>    dev_disp_text ('Invalid mode selected. Set Mode := 1 or Mode := 2 \</l>
+<l>                   and re-run.', 'window', 'center', 'center', 'red', [], [])</l>
+<l>    stop ()</l>
+<l>endif</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
 <procedure name="load_model">
 <interface>
-<parameter name="ModelPath" type="input"/>
-<parameter name="DictPath" type="input"/>
-<parameter name="DLModelHandle" type="output"/>
-<parameter name="DLPreprocessParams" type="output"/>
+<iconic_input/>
+<iconic_output/>
+<control_input>
+<parameter name="ModelPath" semantic="filename"/>
+<parameter name="DictPath" semantic="filename"/>
+</control_input>
+<control_output>
+<parameter name="DLModelHandle"/>
+<parameter name="DLPreprocessParams"/>
+</control_output>
 </interface>
 <body>
 <c>* Load the deep learning model</c>
@@ -25,12 +138,18 @@
 <parameters/>
 </docu>
 </procedure>
-
 <procedure name="preprocess">
 <interface>
-<parameter name="Image" type="input"/>
-<parameter name="DLPreprocessParams" type="input"/>
-<parameter name="DLSample" type="output"/>
+<iconic_input>
+<parameter name="Image"/>
+</iconic_input>
+<iconic_output/>
+<control_input>
+<parameter name="DLPreprocessParams"/>
+</control_input>
+<control_output>
+<parameter name="DLSample"/>
+</control_output>
 </interface>
 <body>
 <c>* Create a new dict and place the image into it</c>
@@ -46,15 +165,21 @@
 <parameters/>
 </docu>
 </procedure>
-
 <procedure name="infer">
 <interface>
-<parameter name="DLModelHandle" type="input"/>
-<parameter name="DLSample" type="input"/>
-<parameter name="AnomalyThreshold" type="input"/>
-<parameter name="IsNG" type="output"/>
-<parameter name="AnomalyScore" type="output"/>
-<parameter name="AnomalyImage" type="output"/>
+<iconic_input/>
+<iconic_output>
+<parameter name="AnomalyImage"/>
+</iconic_output>
+<control_input>
+<parameter name="DLModelHandle"/>
+<parameter name="DLSample"/>
+<parameter name="AnomalyThreshold"/>
+</control_input>
+<control_output>
+<parameter name="IsNG"/>
+<parameter name="AnomalyScore"/>
+</control_output>
 </interface>
 <body>
 <c>* Run the model</c>
@@ -77,15 +202,22 @@
 <parameters/>
 </docu>
 </procedure>
-
 <procedure name="localize">
 <interface>
-<parameter name="AnomalyImage" type="input"/>
-<parameter name="RegionThreshold" type="input"/>
-<parameter name="MinArea" type="input"/>
-<parameter name="DefectRegions" type="output"/>
-<parameter name="BoundingBoxes" type="output"/>
-<parameter name="NumDefects" type="output"/>
+<iconic_input>
+<parameter name="AnomalyImage"/>
+</iconic_input>
+<iconic_output>
+<parameter name="DefectRegions"/>
+<parameter name="BoundingBoxes"/>
+</iconic_output>
+<control_input>
+<parameter name="RegionThreshold"/>
+<parameter name="MinArea"/>
+</control_input>
+<control_output>
+<parameter name="NumDefects"/>
+</control_output>
 </interface>
 <body>
 <c>* Scale real anomaly image to [0, 255] byte range</c>
@@ -116,18 +248,23 @@
 <parameters/>
 </docu>
 </procedure>
-
 <procedure name="visualize">
 <interface>
-<parameter name="Image" type="input"/>
-<parameter name="AnomalyImage" type="input"/>
-<parameter name="IsNG" type="input"/>
-<parameter name="AnomalyScore" type="input"/>
-<parameter name="BoundingBoxes" type="input"/>
-<parameter name="NumDefects" type="input"/>
-<parameter name="WindowHandleLeft" type="input"/>
-<parameter name="WindowHandleRight" type="input"/>
-<parameter name="SavePath" type="input"/>
+<iconic_input>
+<parameter name="Image"/>
+<parameter name="AnomalyImage"/>
+<parameter name="BoundingBoxes"/>
+</iconic_input>
+<iconic_output/>
+<control_input>
+<parameter name="IsNG"/>
+<parameter name="AnomalyScore"/>
+<parameter name="NumDefects"/>
+<parameter name="WindowHandleLeft"/>
+<parameter name="WindowHandleRight"/>
+<parameter name="SavePath"/>
+</control_input>
+<control_output/>
 </interface>
 <body>
 <c>* --- Left window: original image ---</c>
@@ -198,18 +335,22 @@
 <parameters/>
 </docu>
 </procedure>
-
 <procedure name="batch_process">
 <interface>
-<parameter name="InputFolder" type="input"/>
-<parameter name="OutputFolder" type="input"/>
-<parameter name="DLModelHandle" type="input"/>
-<parameter name="DLPreprocessParams" type="input"/>
-<parameter name="AnomalyThreshold" type="input"/>
-<parameter name="RegionThreshold" type="input"/>
-<parameter name="MinArea" type="input"/>
-<parameter name="WindowHandleLeft" type="input"/>
-<parameter name="WindowHandleRight" type="input"/>
+<iconic_input/>
+<iconic_output/>
+<control_input>
+<parameter name="InputFolder"/>
+<parameter name="OutputFolder"/>
+<parameter name="DLModelHandle"/>
+<parameter name="DLPreprocessParams"/>
+<parameter name="AnomalyThreshold"/>
+<parameter name="RegionThreshold"/>
+<parameter name="MinArea"/>
+<parameter name="WindowHandleLeft"/>
+<parameter name="WindowHandleRight"/>
+</control_input>
+<control_output/>
 </interface>
 <body>
 <c>* Ensure output folder exists</c>
@@ -292,111 +433,4 @@
 <parameters/>
 </docu>
 </procedure>
-
-<procedure name="main">
-<interface/>
-<body>
-<c>*==========================================================================</c>
-<c>* Transistor Defect Inspection System</c>
-<c>*==========================================================================</c>
-<c>* Uses a pre-trained DLT GC Anomaly Detection model to inspect transistor</c>
-<c>* images and detect defects with anomaly heatmap visualization.</c>
-<c>*</c>
-<c>* Model training date: 2026-05-07</c>
-<c>* Input size: 256x256, 3 channels</c>
-<c>*==========================================================================</c>
-<c></c>
-<c>*==========================================================================</c>
-<c>* CONFIGURATION -- Adjust these values for your setup</c>
-<c>*==========================================================================</c>
-<c></c>
-<c>* Paths (use forward slashes)</c>
-<l>ModelPath := 'E:/halcon_project/dlt_project/model_训练-260507-151052_opt.hdl'</l>
-<l>DictPath := 'E:/halcon_project/dlt_project/model_训练-260507-151052_opt_dl_preprocess_params.hdict'</l>
-<l>OutputFolder := 'E:/halcon_project/output'</l>
-<c></c>
-<c>* Detection thresholds -- tune these after initial testing</c>
-<l>AnomalyThreshold := 0.5      * Score above which image is NG (0.0 to 1.0 typically)</l>
-<l>RegionThreshold := 30         * Pixel value threshold for anomaly map binarization [0-255]</l>
-<l>MinArea := 50                 * Minimum defect region area in pixels (filters noise)</l>
-<c></c>
-<c>*==========================================================================</c>
-<c>* MAIN -- Select mode and run</c>
-<c>*==========================================================================</c>
-<c></c>
-<c>* Close any open windows first</c>
-<l>dev_close_window ()</l>
-<l>dev_update_off ()</l>
-<c></c>
-<c>* Load the model (done once for either mode)</c>
-<l>try</l>
-<l>    load_model (ModelPath, DictPath, DLModelHandle, DLPreprocessParams)</l>
-<l>catch (Exception)</l>
-<l>    dev_disp_text ('FATAL: Failed to load model: ' + Exception, \</l>
-<l>                   'window', 'center', 'center', 'red', [], [])</l>
-<l>    stop ()</l>
-<l>endtry</l>
-<c></c>
-<c>* Mode selection: change Mode := 2 for batch processing</c>
-<l>Mode := 1</l>
-<c></c>
-<c>* --- Mode 1: Single Image Inspection ---</c>
-<l>if (Mode = 1)</l>
-<c>    * Select an image file</c>
-<l>    read_image (TestImage, 'E:/halcon_project/dataset/transistor/test/bent_lead/000.png')</l>
-<c>    * TODO after testing: replace with dev_get_dialog or hardcoded path</c>
-<c></c>
-<c>    * Create display windows</c>
-<l>    dev_close_window ()</l>
-<l>    get_image_size (TestImage, ImgWidth, ImgHeight)</l>
-<c>    * Scale display to 512x512 while keeping aspect</c>
-<l>    DispSize := 512</l>
-<l>    dev_open_window (0, 0, DispSize, DispSize, 'black', WindowHandleLeft)</l>
-<l>    dev_open_window (0, DispSize + 10, DispSize, DispSize, 'black', WindowHandleRight)</l>
-<l>    dev_set_part (0, 0, ImgHeight - 1, ImgWidth - 1)</l>
-<c></c>
-<c>    * Run pipeline</c>
-<l>    preprocess (TestImage, DLPreprocessParams, DLSample)</l>
-<l>    infer (DLModelHandle, DLSample, AnomalyThreshold, IsNG, AnomalyScore, AnomalyImage)</l>
-<l>    localize (AnomalyImage, RegionThreshold, MinArea, DefectRegions, BoundingBoxes, NumDefects)</l>
-<l>    visualize (TestImage, AnomalyImage, IsNG, AnomalyScore, \</l>
-<l>               BoundingBoxes, NumDefects, WindowHandleLeft, WindowHandleRight, '')</l>
-<c></c>
-<c>    * Keep windows open</c>
-<l>    dev_disp_text ('Press F5 to continue...', 'window', 'bottom', 'right', 'white', [], [])</l>
-<l>    stop ()</l>
-<c></c>
-<c>* --- Mode 2: Batch Folder Processing ---</c>
-<l>elseif (Mode = 2)</l>
-<c>    * Select input folder containing images</c>
-<l>    InputFolder := 'E:/halcon_project/dataset/transistor/test/good'</l>
-<c>    * TODO after testing: replace with dev_get_dialog or hardcoded path</c>
-<c></c>
-<c>    * Create display windows (smaller for batch mode)</c>
-<l>    dev_close_window ()</l>
-<l>    dev_open_window (0, 0, 400, 400, 'black', WindowHandleLeft)</l>
-<l>    dev_open_window (0, 420, 400, 400, 'black', WindowHandleRight)</l>
-<c></c>
-<c>    * Run batch</c>
-<l>    batch_process (InputFolder, OutputFolder, DLModelHandle, \</l>
-<l>                   DLPreprocessParams, AnomalyThreshold, \</l>
-<l>                   RegionThreshold, MinArea, WindowHandleLeft, \</l>
-<l>                   WindowHandleRight)</l>
-<c></c>
-<l>    dev_disp_text ('Batch complete. Results saved to ' + OutputFolder, \</l>
-<l>                   'window', 'bottom', 'right', 'white', [], [])</l>
-<l>    stop ()</l>
-<c></c>
-<c>* --- Invalid mode ---</c>
-<l>else</l>
-<l>    dev_disp_text ('Invalid mode selected. Set Mode := 1 or Mode := 2 \</l>
-<l>                   and re-run.', 'window', 'center', 'center', 'red', [], [])</l>
-<l>    stop ()</l>
-<l>endif</l>
-</body>
-<docu id="main">
-<parameters/>
-</docu>
-</procedure>
-
 </hdevelop>
