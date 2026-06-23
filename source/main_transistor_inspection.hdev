@@ -110,7 +110,8 @@
 <l>    scale_image_max (AnomalyImage, AnomalyHeatmapScaled)</l>
 <l>    convert_image_type (AnomalyHeatmapScaled, AnomalyHeatmapByte, 'byte')</l>
 <l>    dev_display (TestImage)</l>
-<l>    convert_image_type (TestImage, ImageReal, 'real')</l>
+<l>    rgb1_to_gray (TestImage, TestImageGray)</l>
+<l>    convert_image_type (TestImageGray, ImageReal, 'real')</l>
 <l>    convert_image_type (AnomalyHeatmapByte, AnomalyReal, 'real')</l>
 <l>    scale_image (ImageReal, ImageBase, 0.5, 0)</l>
 <l>    scale_image (AnomalyReal, AnomalyOverlay, 0.5, 0)</l>
@@ -231,7 +232,8 @@
 <l>            scale_image_max (AnomalyImage, AnomalyHeatmapScaled)</l>
 <l>            convert_image_type (AnomalyHeatmapScaled, AnomalyHeatmapByte, 'byte')</l>
 <l>            dev_display (CurrentImage)</l>
-<l>            convert_image_type (CurrentImage, ImageReal, 'real')</l>
+<l>            rgb1_to_gray (CurrentImage, CurrentImageGray)</l>
+<l>            convert_image_type (CurrentImageGray, ImageReal, 'real')</l>
 <l>            convert_image_type (AnomalyHeatmapByte, AnomalyReal, 'real')</l>
 <l>            scale_image (ImageReal, ImageBase, 0.5, 0)</l>
 <l>            scale_image (AnomalyReal, AnomalyOverlay, 0.5, 0)</l>
