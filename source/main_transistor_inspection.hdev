@@ -60,8 +60,23 @@
 <l>    dev_set_part (0, 0, ImgHeight - 1, ImgWidth - 1)</l>
 <c></c>
 <c>    * --- PREPROCESS (inline) ---</c>
-<l>    gen_dl_samples_from_images (TestImage, DLSample)</l>
-<l>    preprocess_dl_model (DLSample, DLPreprocessParams)</l>
+<c>    * Convert to 3 channels if grayscale (model expects 3-channel input)</c>
+<l>    count_channels (TestImage, Channels)</l>
+<l>    if (Channels = 1)</l>
+<l>        compose3 (TestImage, TestImage, TestImage, MultiChannelImage)</l>
+<l>    else</l>
+<l>        copy_image (TestImage, MultiChannelImage)</l>
+<l>    endif</l>
+<c>    * Resize to model input size 256x256</c>
+<l>    zoom_image_size (MultiChannelImage, ImageResized, 256, 256, \</l>
+<l>                      'constant')</l>
+<c>    * Convert to real and scale from [0,255] to model range [-127,128]</c>
+<l>    convert_image_type (ImageResized, ImageReal, 'real')</l>
+<l>    scale_image (ImageReal, ImagePreprocessed, 1.0, -127)</l>
+<c>    * Ensure full domain (model was trained with full_domain)</c>
+<l>    full_domain (ImagePreprocessed, ImageFullDomain)</l>
+<c>    * Create DLSample dict for inference</c>
+<l>    gen_dl_samples_from_images (ImageFullDomain, DLSample)</l>
 <c></c>
 <c>    * --- INFER (inline) ---</c>
 <l>    apply_dl_model (DLModelHandle, DLSample, [], DLResult)</l>
@@ -162,8 +177,24 @@
 <l>            read_image (CurrentImage, CurrentImagePath)</l>
 <c></c>
 <c>            * PREPROCESS</c>
-<l>            gen_dl_samples_from_images (CurrentImage, DLSample)</l>
-<l>            preprocess_dl_model (DLSample, DLPreprocessParams)</l>
+<c>            * Convert to 3 channels if grayscale (model expects 3-channel input)</c>
+<l>            count_channels (CurrentImage, Channels)</l>
+<l>            if (Channels = 1)</l>
+<l>                compose3 (CurrentImage, CurrentImage, CurrentImage, \</l>
+<l>                          MultiChannelImage)</l>
+<l>            else</l>
+<l>                copy_image (CurrentImage, MultiChannelImage)</l>
+<l>            endif</l>
+<c>            * Resize to model input size 256x256</c>
+<l>            zoom_image_size (MultiChannelImage, ImageResized, 256, \</l>
+<l>                              256, 'constant')</l>
+<c>            * Convert to real and scale from [0,255] to model range [-127,128]</c>
+<l>            convert_image_type (ImageResized, ImageReal, 'real')</l>
+<l>            scale_image (ImageReal, ImagePreprocessed, 1.0, -127)</l>
+<c>            * Ensure full domain (model was trained with full_domain)</c>
+<l>            full_domain (ImagePreprocessed, ImageFullDomain)</l>
+<c>            * Create DLSample dict for inference</c>
+<l>            gen_dl_samples_from_images (ImageFullDomain, DLSample)</l>
 <c></c>
 <c>            * INFER</c>
 <l>            apply_dl_model (DLModelHandle, DLSample, [], DLResult)</l>
