@@ -147,7 +147,7 @@
 <c>* MODE 2: BATCH</c>
 <c>*==========================================================================</c>
 <l>elseif (Mode = 2)</l>
-<l>    InputFolder := 'E:/halcon_project/dataset/transistor/test/good'</l>
+<l>    InputFolder := 'E:/halcon_project/test'</l>
 <c></c>
 <c>    * Ensure output folder</c>
 <l>    file_exists (OutputFolder, FileExists)</l>
