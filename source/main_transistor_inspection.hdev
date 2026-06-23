@@ -105,19 +105,15 @@
 <l>    dev_display (TestImage)</l>
 <l>    dev_disp_text ('Original Image', 'window', 'top', 'left', 'white', 'box', 'false')</l>
 <c></c>
-<c>    * Right window: blended heatmap</c>
+<c>    * Right window: anomaly heatmap + boxes</c>
 <l>    dev_set_window (WindowHandleRight)</l>
+<l>    dev_set_part (0, 0, ImgHeight - 1, ImgWidth - 1)</l>
+<c>    * Scale anomaly and display with hot LUT for heatmap effect</c>
 <l>    scale_image_max (AnomalyImage, AnomalyHeatmapScaled)</l>
 <l>    convert_image_type (AnomalyHeatmapScaled, AnomalyHeatmapByte, 'byte')</l>
-<l>    dev_display (TestImage)</l>
-<l>    rgb1_to_gray (TestImage, TestImageGray)</l>
-<l>    convert_image_type (TestImageGray, ImageReal, 'real')</l>
-<l>    convert_image_type (AnomalyHeatmapByte, AnomalyReal, 'real')</l>
-<l>    scale_image (ImageReal, ImageBase, 0.5, 0)</l>
-<l>    scale_image (AnomalyReal, AnomalyOverlay, 0.5, 0)</l>
-<l>    add_image (ImageBase, AnomalyOverlay, BlendedReal, 1.0, 0)</l>
-<l>    convert_image_type (BlendedReal, BlendedImage, 'byte')</l>
-<l>    dev_display (BlendedImage)</l>
+<l>    dev_set_lut ('hot')</l>
+<l>    dev_display (AnomalyHeatmapByte)</l>
+<l>    dev_set_lut ('default')</l>
 <c></c>
 <c>    * Red boxes</c>
 <l>    if (NumDefects &gt; 0)</l>
@@ -229,17 +225,13 @@
 <l>            dev_disp_text ('Original Image', 'window', 'top', 'left', 'white', 'box', 'false')</l>
 <c></c>
 <l>            dev_set_window (WindowHandleRight)</l>
+<l>            dev_set_part (0, 0, ImgHeight - 1, ImgWidth - 1)</l>
+<c>            * Scale anomaly and display with hot LUT for heatmap effect</c>
 <l>            scale_image_max (AnomalyImage, AnomalyHeatmapScaled)</l>
 <l>            convert_image_type (AnomalyHeatmapScaled, AnomalyHeatmapByte, 'byte')</l>
-<l>            dev_display (CurrentImage)</l>
-<l>            rgb1_to_gray (CurrentImage, CurrentImageGray)</l>
-<l>            convert_image_type (CurrentImageGray, ImageReal, 'real')</l>
-<l>            convert_image_type (AnomalyHeatmapByte, AnomalyReal, 'real')</l>
-<l>            scale_image (ImageReal, ImageBase, 0.5, 0)</l>
-<l>            scale_image (AnomalyReal, AnomalyOverlay, 0.5, 0)</l>
-<l>            add_image (ImageBase, AnomalyOverlay, BlendedReal, 1.0, 0)</l>
-<l>            convert_image_type (BlendedReal, BlendedImage, 'byte')</l>
-<l>            dev_display (BlendedImage)</l>
+<l>            dev_set_lut ('hot')</l>
+<l>            dev_display (AnomalyHeatmapByte)</l>
+<l>            dev_set_lut ('default')</l>
 <c></c>
 <l>            if (NumDefects &gt; 0)</l>
 <l>                dev_set_color ('red')</l>
