@@ -68,8 +68,7 @@
 <l>        copy_image (TestImage, MultiChannelImage)</l>
 <l>    endif</l>
 <c>    * Resize to model input size 256x256</c>
-<l>    zoom_image_size (MultiChannelImage, ImageResized, 256, 256, \</l>
-<l>                      'constant')</l>
+<l>    zoom_image_size (MultiChannelImage, ImageResized, 256, 256, 'constant')</l>
 <c>    * Convert to real and scale from [0,255] to model range [-127,128]</c>
 <l>    convert_image_type (ImageResized, ImageReal, 'real')</l>
 <l>    scale_image (ImageReal, ImagePreprocessed, 1.0, -127)</l>
@@ -104,8 +103,7 @@
 <c>    * Left window: original</c>
 <l>    dev_set_window (WindowHandleLeft)</l>
 <l>    dev_display (TestImage)</l>
-<l>    dev_disp_text ('Original Image', 'window', 'top', 'left', 'white', \</l>
-<l>                   'box', 'false')</l>
+<l>    dev_disp_text ('Original Image', 'window', 'top', 'left', 'white', 'box', 'false')</l>
 <c></c>
 <c>    * Right window: blended heatmap</c>
 <l>    dev_set_window (WindowHandleRight)</l>
@@ -137,15 +135,12 @@
 <l>        TextColor := 'green'</l>
 <l>    endif</l>
 <l>    get_image_size (TestImage, ImgWidth2, ImgHeight2)</l>
-<l>    disp_message (WindowHandleRight, ResultText + ' | Score: ' \</l>
-<l>                   + AnomalyScore$'.4f', 'window', 12, 12, TextColor, 'false')</l>
+<l>    disp_message (WindowHandleRight, ResultText + ' | Score: ' + AnomalyScore$'.4f', 'window', 12, 12, TextColor, 'false')</l>
 <l>    if (NumDefects &gt; 0)</l>
-<l>        disp_message (WindowHandleRight, 'Defects: ' + NumDefects, \</l>
-<l>                       'window', ImgHeight2 - 30, 12, 'red', 'false')</l>
+<l>        disp_message (WindowHandleRight, 'Defects: ' + NumDefects, 'window', ImgHeight2 - 30, 12, 'red', 'false')</l>
 <l>    endif</l>
 <c></c>
-<l>    dev_disp_text ('Press F5 to continue...', 'window', 'bottom', 'right', \</l>
-<l>                   'white', [], [])</l>
+<l>    dev_disp_text ('Press F5 to continue...', 'window', 'bottom', 'right', 'white', [], [])</l>
 <l>    stop ()</l>
 <c></c>
 <c>*==========================================================================</c>
@@ -180,14 +175,12 @@
 <c>            * Convert to 3 channels if grayscale (model expects 3-channel input)</c>
 <l>            count_channels (CurrentImage, Channels)</l>
 <l>            if (Channels = 1)</l>
-<l>                compose3 (CurrentImage, CurrentImage, CurrentImage, \</l>
-<l>                          MultiChannelImage)</l>
+<l>                compose3 (CurrentImage, CurrentImage, CurrentImage, MultiChannelImage)</l>
 <l>            else</l>
 <l>                copy_image (CurrentImage, MultiChannelImage)</l>
 <l>            endif</l>
 <c>            * Resize to model input size 256x256</c>
-<l>            zoom_image_size (MultiChannelImage, ImageResized, 256, \</l>
-<l>                              256, 'constant')</l>
+<l>            zoom_image_size (MultiChannelImage, ImageResized, 256, 256, 'constant')</l>
 <c>            * Convert to real and scale from [0,255] to model range [-127,128]</c>
 <l>            convert_image_type (ImageResized, ImageReal, 'real')</l>
 <l>            scale_image (ImageReal, ImagePreprocessed, 1.0, -127)</l>
@@ -210,8 +203,7 @@
 <l>            scale_image_max (AnomalyImage, AnomalyImageScaled)</l>
 <l>            threshold (AnomalyImageScaled, AnomalyRegion, RegionThreshold, 255)</l>
 <l>            connection (AnomalyRegion, ConnectedRegions)</l>
-<l>            select_shape (ConnectedRegions, DefectRegions, 'area', 'and', \</l>
-<l>                          MinArea, 999999)</l>
+<l>            select_shape (ConnectedRegions, DefectRegions, 'area', 'and', MinArea, 999999)</l>
 <l>            count_obj (DefectRegions, NumDefects)</l>
 <l>            if (NumDefects &gt; 0)</l>
 <l>                shape_trans (DefectRegions, BoundingBoxes, 'rectangle1')</l>
@@ -233,13 +225,11 @@
 <c>            * VISUALIZE</c>
 <l>            dev_set_window (WindowHandleLeft)</l>
 <l>            dev_display (CurrentImage)</l>
-<l>            dev_disp_text ('Original Image', 'window', 'top', 'left', \</l>
-<l>                           'white', 'box', 'false')</l>
+<l>            dev_disp_text ('Original Image', 'window', 'top', 'left', 'white', 'box', 'false')</l>
 <c></c>
 <l>            dev_set_window (WindowHandleRight)</l>
 <l>            scale_image_max (AnomalyImage, AnomalyHeatmapScaled)</l>
-<l>            convert_image_type (AnomalyHeatmapScaled, AnomalyHeatmapByte, \</l>
-<l>                                'byte')</l>
+<l>            convert_image_type (AnomalyHeatmapScaled, AnomalyHeatmapByte, 'byte')</l>
 <l>            dev_display (CurrentImage)</l>
 <l>            convert_image_type (CurrentImage, ImageReal, 'real')</l>
 <l>            convert_image_type (AnomalyHeatmapByte, AnomalyReal, 'real')</l>
@@ -264,12 +254,9 @@
 <l>                TextColor := 'green'</l>
 <l>            endif</l>
 <l>            get_image_size (CurrentImage, ImgWidth2, ImgHeight2)</l>
-<l>            disp_message (WindowHandleRight, ResultText + ' | Score: ' \</l>
-<l>                           + AnomalyScore$'.4f', 'window', 12, 12, \</l>
-<l>                           TextColor, 'false')</l>
+<l>            disp_message (WindowHandleRight, ResultText + ' | Score: ' + AnomalyScore$'.4f', 'window', 12, 12, TextColor, 'false')</l>
 <l>            if (NumDefects &gt; 0)</l>
-<l>                disp_message (WindowHandleRight, 'Defects: ' + NumDefects, \</l>
-<l>                               'window', ImgHeight2 - 30, 12, 'red', 'false')</l>
+<l>                disp_message (WindowHandleRight, 'Defects: ' + NumDefects, 'window', ImgHeight2 - 30, 12, 'red', 'false')</l>
 <l>            endif</l>
 <c></c>
 <c>            * Save</c>
@@ -277,15 +264,11 @@
 <l>            write_image (ResultImage, 'png', 0, SavePath)</l>
 <c></c>
 <c>            * Progress</c>
-<l>            dev_disp_text ('Processing ' + (Index + 1) + '/' + TotalImages \</l>
-<l>                           + '  OK:' + CountOK + '  NG:' + CountNG, \</l>
-<l>                           'window', 'bottom', 'right', 'white', [], [])</l>
+<l>            dev_disp_text ('Processing ' + (Index + 1) + '/' + TotalImages + '  OK:' + CountOK + '  NG:' + CountNG, 'window', 'bottom', 'right', 'white', [], [])</l>
 <l>            wait_seconds (0.5)</l>
 <c></c>
 <l>        catch (Exception)</l>
-<l>            dev_disp_text ('Error on ' + CurrentImagePath + ': ' \</l>
-<l>                           + Exception, 'window', 'bottom', 'right', \</l>
-<l>                           'red', [], [])</l>
+<l>            dev_disp_text ('Error on ' + CurrentImagePath + ': ' + Exception, 'window', 'bottom', 'right', 'red', [], [])</l>
 <l>            wait_seconds (1)</l>
 <l>        endtry</l>
 <l>    endfor</l>
@@ -296,16 +279,13 @@
 <l>    SummaryText[1] := 'Total: ' + TotalImages</l>
 <l>    SummaryText[2] := 'OK: ' + CountOK</l>
 <l>    SummaryText[3] := 'NG: ' + CountNG</l>
-<l>    disp_message (SummaryWindow, SummaryText, 'window', 20, 20, 'white', \</l>
-<l>                   'false')</l>
+<l>    disp_message (SummaryWindow, SummaryText, 'window', 20, 20, 'white', 'false')</l>
 <c></c>
-<l>    dev_disp_text ('Batch complete. Results saved to ' + OutputFolder, \</l>
-<l>                   'window', 'bottom', 'right', 'white', [], [])</l>
+<l>    dev_disp_text ('Batch complete. Results saved to ' + OutputFolder, 'window', 'bottom', 'right', 'white', [], [])</l>
 <l>    stop ()</l>
 <c></c>
 <l>else</l>
-<l>    dev_disp_text ('Invalid mode. Set Mode := 1 or Mode := 2 and re-run.', \</l>
-<l>                   'window', 'center', 'center', 'red', [], [])</l>
+<l>    dev_disp_text ('Invalid mode. Set Mode := 1 or Mode := 2 and re-run.', 'window', 'center', 'center', 'red', [], [])</l>
 <l>    stop ()</l>
 <l>endif</l>
 </body>

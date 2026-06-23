@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="25.11.0.0">
+<procedure name="predict_loaded">
+<interface>
+<ic>
+<par name="ImageFile" base_type="ctrl" dimension="0"/>
+<par name="DLModelHandle" base_type="ctrl" dimension="0"/>
+<par name="DLPreprocessParam" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="DLResultBatch" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>read_image (Image, ImageFile)</l>
+<l>gen_dl_samples_from_images (Image, DLSampleBatch)</l>
+<l>preprocess_dl_samples (DLSampleBatch, DLPreprocessParam)</l>
+<l>apply_dl_model (DLModelHandle, DLSampleBatch, [], DLResultBatch)</l>
+<l>return ()</l>
+</body>
+<docu id="predict_loaded">
+<parameters>
+<parameter id="ImageFile"/>
+<parameter id="DLModelHandle"/>
+<parameter id="DLPreprocessParam"/>
+<parameter id="DLResultBatch"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

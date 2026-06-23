@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="25.11.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* ===== 缺陷检测推理脚本（命令行版 - HALCON 25.11）=====</c>
+<c>* 路径由 Python 后端动态替换</c>
+<l>ImageFile := '{IMAGE_PATH}'</l>
+<l>ResultFile := '{RESULT_PATH}'</l>
+<l>ModelFile := '{MODEL_PATH}'</l>
+<l>PreprocessFile := '{HDICT_PATH}'</l>
+<c>* --- 加载预处理参数 ---</c>
+<l>read_dict (PreprocessFile, [], [], DLPreprocessParam)</l>
+<c>* --- 加载模型 ---</c>
+<l>read_dl_model (ModelFile, DLModelHandle)</l>
+<c>* --- 读取图片 ---</c>
+<l>read_image (Image, ImageFile)</l>
+<c>* --- 生成DL样本 ---</c>
+<l>gen_dl_samples_from_images (Image, DLSampleBatch)</l>
+<c>* --- 预处理 ---</c>
+<l>preprocess_dl_samples (DLSampleBatch, DLPreprocessParam)</l>
+<c>* --- 推理 ---</c>
+<l>apply_dl_model (DLModelHandle, DLSampleBatch, [], DLResultBatch)</l>
+<c>* --- 提取结果 ---</c>
+<c>* classification_confidences 按降序排列，classification_class_names 与之对应，[0] 即 top1</c>
+<l>AllConfidences := DLResultBatch.classification_confidences</l>
+<l>AllClassNames := DLResultBatch.classification_class_names</l>
+<c>* 如果 classification_class_names 键不存在，会在此处报错，便于排查</c>
+<c>* confidences 已按降序排列，class_names 与之对应，所以 [0] 就是 top1</c>
+<l>TopClass := AllClassNames[0]</l>
+<l>TopConfidence := AllConfidences[0]</l>
+<c>* --- 写入结果JSON ---</c>
+<l>NumClasses := |AllClassNames|</l>
+<l>JSONLine := '{"top_class":"' + TopClass + '","top_confidence":' + TopConfidence + ',"classes":['</l>
+<l>for I := 0 to NumClasses - 1 by 1</l>
+<l>    JSONLine := JSONLine + '{"class":"' + AllClassNames[I] + '","confidence":' + AllConfidences[I] + '}'</l>
+<l>    if (I &lt; NumClasses - 1)</l>
+<l>        JSONLine := JSONLine + ','</l>
+<l>    endif</l>
+<l>endfor</l>
+<l>JSONLine := JSONLine + ']}'</l>
+<l>open_file (ResultFile, 'output', FileHandle)</l>
+<l>fwrite_string (FileHandle, JSONLine)</l>
+<l>close_file (FileHandle)</l>
+<c>* --- 清理 ---</c>
+<l>clear_dl_model (DLModelHandle)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
