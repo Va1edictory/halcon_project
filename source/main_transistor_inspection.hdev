@@ -50,7 +50,7 @@
 <c>* MODE 1: SINGLE IMAGE</c>
 <c>*==========================================================================</c>
 <l>if (Mode = 1)</l>
-<l>    read_image (TestImage, 'E:/halcon_project/dataset/transistor/test/bent_lead/000.png')</l>
+<l>    read_image (TestImage, 'E:/halcon_project/dataset/transistor/test/good/000.png')</l>
 <c></c>
 <c>    * Create windows</c>
 <l>    dev_close_window ()</l>
@@ -98,6 +98,14 @@
 <l>    else</l>
 <l>        gen_empty_obj (BoundingBoxes)</l>
 <l>    endif</l>
+<c>    * Scale boxes from 256x256 anomaly to original image size</c>
+<l>    if (NumDefects &gt; 0)</l>
+<l>        hom_mat2d_identity (HomMat2D)</l>
+<l>        hom_mat2d_scale (HomMat2D, ImgWidth / 256.0, ImgHeight / 256.0, 0, 0, HomMat2D)</l>
+<l>        affine_trans_region (BoundingBoxes, BoundingBoxesScaled, HomMat2D, 'nearest_neighbor')</l>
+<l>    else</l>
+<l>        gen_empty_obj (BoundingBoxesScaled)</l>
+<l>    endif</l>
 <c></c>
 <c>    * --- VISUALIZE (inline) ---</c>
 <c>    * Left window: original</c>
@@ -116,7 +124,7 @@
 <l>        dev_set_color ('red')</l>
 <l>        dev_set_line_width (3)</l>
 <l>        dev_set_draw ('margin')</l>
-<l>        dev_display (BoundingBoxes)</l>
+<l>        dev_display (BoundingBoxesScaled)</l>
 <l>    endif</l>
 <c></c>
 <c>    * Large OK/NG verdict in center</c>
@@ -202,6 +210,14 @@
 <l>            else</l>
 <l>                gen_empty_obj (BoundingBoxes)</l>
 <l>            endif</l>
+<c>            * Scale boxes from 256x256 anomaly to original image size</c>
+<l>            if (NumDefects &gt; 0)</l>
+<l>                hom_mat2d_identity (HomMat2D)</l>
+<l>                hom_mat2d_scale (HomMat2D, ImgWidth / 256.0, ImgHeight / 256.0, 0, 0, HomMat2D)</l>
+<l>                affine_trans_region (BoundingBoxes, BoundingBoxesScaled, HomMat2D, 'nearest_neighbor')</l>
+<l>            else</l>
+<l>                gen_empty_obj (BoundingBoxesScaled)</l>
+<l>            endif</l>
 <c></c>
 <c>            * Build filename</c>
 <l>            if (IsNG = 1)</l>
@@ -229,7 +245,7 @@
 <l>                dev_set_color ('red')</l>
 <l>                dev_set_line_width (3)</l>
 <l>                dev_set_draw ('margin')</l>
-<l>                dev_display (BoundingBoxes)</l>
+<l>                dev_display (BoundingBoxesScaled)</l>
 <l>            endif</l>
 <c></c>
 <c>            * Large OK/NG verdict in center</c>
