@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>基于深度学习的晶体管缺陷检测系统 — 毕业答辩</title>
+<style>
+  :root {
+    --primary: #1a56db;
+    --dark: #1e293b;
+    --light: #f8fafc;
+    --accent: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --gray: #64748b;
+    --border: #e2e8f0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
+    background: var(--light);
+    color: var(--dark);
+    line-height: 1.8;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, var(--dark) 0%, #0f172a 100%);
+    color: white;
+    padding: 80px 20px;
+    text-align: center;
+  }
+  .hero h1 { font-size: 2.4em; margin-bottom: 16px; letter-spacing: 2px; }
+  .hero .subtitle { font-size: 1.1em; color: #94a3b8; margin-bottom: 24px; }
+  .hero .badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .hero .badge {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 6px 18px; border-radius: 20px; font-size: 0.9em;
+  }
+
+  /* Sections */
+  .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+  section { padding: 60px 0; }
+  section:nth-child(even) { background: white; }
+  h2 {
+    font-size: 1.8em; text-align: center; margin-bottom: 40px;
+    position: relative;
+  }
+  h2::after {
+    content: ''; display: block;
+    width: 60px; height: 4px; background: var(--primary);
+    margin: 12px auto 0; border-radius: 2px;
+  }
+
+  /* Architecture diagram */
+  .arch-diagram {
+    background: white; border: 1px solid var(--border);
+    border-radius: 12px; padding: 30px;
+    overflow-x: auto;
+  }
+  .arch-row { display: flex; justify-content: center; align-items: center; gap: 0; flex-wrap: wrap; }
+  .arch-box {
+    background: var(--light); border: 2px solid var(--border);
+    border-radius: 8px; padding: 12px 20px; text-align: center;
+    font-weight: 600; font-size: 0.9em; white-space: nowrap;
+  }
+  .arch-box.active { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+  .arch-arrow { font-size: 1.5em; color: var(--gray); padding: 0 10px; }
+
+  /* Pipeline */
+  .pipeline { display: flex; gap: 16px; overflow-x: auto; padding: 20px 0; }
+  .pipe-card {
+    flex: 1; min-width: 140px;
+    background: white; border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px 16px; text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .pipe-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+  .pipe-card .step { font-size: 0.75em; color: var(--primary); font-weight: 700; text-transform: uppercase; }
+  .pipe-card .name { font-size: 1em; font-weight: 700; margin: 8px 0; }
+  .pipe-card .op { font-size: 0.8em; color: var(--gray); font-family: monospace; }
+
+  /* Comparison */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 640px) { .compare { grid-template-columns: 1fr; } }
+  .result-card {
+    border-radius: 12px; padding: 30px 24px; text-align: center;
+    border: 2px solid var(--border);
+  }
+  .result-card.ok { border-color: var(--green); background: #f0fdf4; }
+  .result-card.ng { border-color: var(--red); background: #fef2f2; }
+  .result-card .verdict { font-size: 3em; font-weight: 900; }
+  .result-card.ok .verdict { color: var(--green); }
+  .result-card.ng .verdict { color: var(--red); }
+  .result-card .detail { color: var(--gray); margin-top: 8px; font-size: 0.9em; }
+
+  /* Problems table */
+  .problem-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+  .problem-table th { background: var(--dark); color: white; padding: 12px 16px; text-align: left; }
+  .problem-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .problem-table tr:nth-child(even) td { background: var(--light); }
+  .problem-table .severity { font-weight: 700; }
+  .problem-table .sev-critical { color: var(--red); }
+  .problem-table .sev-important { color: var(--accent); }
+
+  /* Tech stack */
+  .tech-grid { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+  .tech-item {
+    background: white; border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px 28px; text-align: center;
+    min-width: 130px;
+  }
+  .tech-item .icon { font-size: 2em; margin-bottom: 8px; }
+  .tech-item .label { font-weight: 600; font-size: 0.9em; }
+  .tech-item .ver { color: var(--gray); font-size: 0.8em; }
+
+  /* Footer */
+  footer {
+    background: var(--dark); color: #94a3b8;
+    text-align: center; padding: 30px 20px; font-size: 0.85em;
+  }
+
+  /* Table of contents */
+  .toc { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 20px 0; }
+  .toc a {
+    text-decoration: none; background: white; border: 1px solid var(--border);
+    padding: 8px 16px; border-radius: 20px; color: var(--dark); font-size: 0.85em;
+    transition: all 0.2s;
+  }
+  .toc a:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+  .highlight-box {
+    background: #eff6ff; border-left: 4px solid var(--primary);
+    padding: 16px 24px; border-radius: 0 8px 8px 0; margin: 20px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <h1>基于深度学习的晶体管缺陷检测系统</h1>
+  <p class="subtitle">HALCON DLT · GC Anomaly Detection · 工业机器视觉</p>
+  <div class="badges">
+    <span class="badge">MVTec HALCON 26.05</span>
+    <span class="badge">深度学习 (DLT)</span>
+    <span class="badge">异常检测</span>
+    <span class="badge">工业质检</span>
+    <span class="badge">HDevelop</span>
+  </div>
+</header>
+
+<!-- ============ TOC ============ -->
+<section style="padding: 20px 0;">
+  <div class="container">
+    <nav class="toc">
+      <a href="#background">项目背景</a>
+      <a href="#dataset">数据集与模型</a>
+      <a href="#architecture">系统架构</a>
+      <a href="#pipeline">技术流水线</a>
+      <a href="#challenges">难点与解决</a>
+      <a href="#results">检测效果</a>
+      <a href="#summary">总结展望</a>
+    </nav>
+  </div>
+</section>
+
+<!-- ============ BACKGROUND ============ -->
+<section id="background">
+  <div class="container">
+    <h2>项目背景</h2>
+    <div class="compare">
+      <div style="padding:20px;">
+        <h3 style="color:var(--red); margin-bottom:12px;">✕ 人工目检的痛点</h3>
+        <ul style="list-style:none; padding:0;">
+          <li style="padding:8px 0;">🔴 效率低 — 依赖人工逐件检查</li>
+          <li style="padding:8px 0;">🔴 主观性强 — 不同质检员标准不一</li>
+          <li style="padding:8px 0;">🔴 易疲劳 — 长时间工作漏检率上升</li>
+          <li style="padding:8px 0;">🔴 难追溯 — 无法系统记录缺陷数据</li>
+        </ul>
+      </div>
+      <div style="padding:20px;">
+        <h3 style="color:var(--green); margin-bottom:12px;">✓ 自动检测的优势</h3>
+        <ul style="list-style:none; padding:0;">
+          <li style="padding:8px 0;">🟢 7×24 无人值守运行</li>
+          <li style="padding:8px 0;">🟢 基于模型的标准化判定</li>
+          <li style="padding:8px 0;">🟢 检测一致性高，不受疲劳影响</li>
+          <li style="padding:8px 0;">🟢 结果数字化，便于统计与追溯</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <strong>核心目标：</strong>利用 HALCON DLT 深度学习平台，构建一套能自动判断晶体管 OK/NG 并标注缺陷位置的非接触式检测系统。
+    </div>
+  </div>
+</section>
+
+<!-- ============ DATASET ============ -->
+<section id="dataset">
+  <div class="container">
+    <h2>数据集与模型</h2>
+    <table class="problem-table" style="margin-bottom:30px;">
+      <thead>
+        <tr><th>类别</th><th>训练集</th><th>测试集</th><th>Ground Truth</th><th>示例</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>good（正常）</td><td>60</td><td>20</td><td>—</td><td>外观完好</td></tr>
+        <tr><td>bent_lead（弯脚）</td><td>—</td><td>20</td><td>✅</td><td>引脚弯曲变形</td></tr>
+        <tr><td>cut_lead（切脚不良）</td><td>—</td><td>20</td><td>✅</td><td>引脚切割异常</td></tr>
+        <tr><td>damaged_case（破壳）</td><td>—</td><td>20</td><td>✅</td><td>外壳破损裂纹</td></tr>
+        <tr><td>misplaced（错位）</td><td>—</td><td>20</td><td>✅</td><td>元件位置偏移</td></tr>
+      </tbody>
+    </table>
+
+    <div class="highlight-box">
+      <strong>模型：</strong>GC Anomaly Detection（全局上下文异常检测）
+      <br>输入 256×256×3，值域 [-127, 128]，full_domain
+      <br>输出 anomaly_score（异常分数）+ anomaly_image（256×256 热力图）
+    </div>
+  </div>
+</section>
+
+<!-- ============ ARCHITECTURE ============ -->
+<section id="architecture">
+  <div class="container">
+    <h2>系统架构</h2>
+    <div class="arch-diagram">
+      <div class="arch-row" style="margin-bottom:20px;">
+        <div class="arch-box active">main<br>入口脚本</div>
+      </div>
+      <div class="arch-row" style="margin-bottom:20px; gap:40px;">
+        <div class="arch-box" style="border-color:var(--green);">Mode 1<br>单张交互检测</div>
+        <div class="arch-box" style="border-color:var(--accent);">Mode 2<br>批量离线检测</div>
+      </div>
+      <div class="arch-row">
+        <span style="color:var(--gray); font-size:0.85em; text-align:center;">
+          两种模式共享同一检测流水线
+        </span>
+      </div>
+      <div class="pipeline" style="margin-top:16px;">
+        <div class="pipe-card"><div class="step">Step 1</div><div class="name">加载模型</div><div class="op">read_dl_model</div></div>
+        <div class="pipe-card"><div class="step">Step 2</div><div class="name">图像预处理</div><div class="op">5步手动流水线</div></div>
+        <div class="pipe-card"><div class="step">Step 3</div><div class="name">异常推理</div><div class="op">apply_dl_model</div></div>
+        <div class="pipe-card"><div class="step">Step 4</div><div class="name">缺陷定位</div><div class="op">阈值化+连通域</div></div>
+        <div class="pipe-card"><div class="step">Step 5</div><div class="name">坐标映射</div><div class="op">仿射变换缩放</div></div>
+        <div class="pipe-card"><div class="step">Step 6</div><div class="name">结果可视化</div><div class="op">双窗口展示</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PIPELINE ============ -->
+<section id="pipeline">
+  <div class="container">
+    <h2>技术流水线详解</h2>
+
+    <h3 style="margin-top:30px;">① 图像预处理</h3>
+    <table class="problem-table">
+      <tr><th>步骤</th><th>算子</th><th>变换</th><th>原因</th></tr>
+      <tr><td>通道转换</td><td><code>compose3</code></td><td>1ch → 3ch</td><td>模型要求 3 通道输入</td></tr>
+      <tr><td>尺寸缩放</td><td><code>zoom_image_size</code></td><td>900² → 256²</td><td>模型输入固定 256×256</td></tr>
+      <tr><td>类型转换</td><td><code>convert_image_type</code></td><td>byte → real</td><td>模型需要浮点类型</td></tr>
+      <tr><td>值域映射</td><td><code>scale_image</code></td><td>[0,255] → [-127,128]</td><td>匹配训练时的值域</td></tr>
+      <tr><td>域的设置</td><td><code>full_domain</code></td><td>—</td><td>避免 domain 裁剪</td></tr>
+      <tr><td>样本生成</td><td><code>gen_dl_samples_from_images</code></td><td>→ DLSample</td><td>避免 iconic/control 冲突</td></tr>
+    </table>
+
+    <h3 style="margin-top:30px;">② 异常推理</h3>
+    <div class="highlight-box">
+      <code>apply_dl_model</code> → DLResult<br>
+      <code>get_dict_object</code> → AnomalyImage（用 object 接口避免类型冲突）<br>
+      <code>get_dict_tuple</code> → AnomalyScore<br>
+      <code>Score > Threshold ? NG : OK</code>
+    </div>
+
+    <h3 style="margin-top:30px;">③ 缺陷定位</h3>
+    <div class="pipeline">
+      <div class="pipe-card"><div class="op">scale_image_max</div><div class="name">值域拉伸</div></div>
+      <div class="pipe-card"><div class="op">threshold</div><div class="name">二值化</div></div>
+      <div class="pipe-card"><div class="op">connection</div><div class="name">分离连通域</div></div>
+      <div class="pipe-card"><div class="op">select_shape</div><div class="name">过滤噪点</div></div>
+      <div class="pipe-card"><div class="op">shape_trans</div><div class="name">生成矩形框</div></div>
+    </div>
+
+    <h3 style="margin-top:30px;">④ 坐标映射</h3>
+    <div class="highlight-box">
+      <strong>问题：</strong>热力图 256×256，原图 900×900，直接叠加偏移严重<br>
+      <strong>解决：</strong><code>hom_mat2d_scale</code> + <code>affine_trans_region</code> 缩放至原图尺寸
+    </div>
+
+    <h3 style="margin-top:30px;">⑤ 双窗口可视化</h3>
+    <div class="compare">
+      <div class="result-card ok">
+        <div style="color:var(--gray); margin-bottom:8px;">◀ 左窗</div>
+        <div style="font-size:1.5em;">原始图像</div>
+        <div class="detail">显示待检测的晶体管原始图片</div>
+      </div>
+      <div class="result-card" style="border-color:var(--primary); background:#eff6ff;">
+        <div style="color:var(--gray); margin-bottom:8px;">右窗 ▶</div>
+        <div style="font-size:1.5em;">检测结果</div>
+        <div class="detail">原图 + 红框标注 + OK/NG 判定 + 分数</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHALLENGES ============ -->
+<section id="challenges">
+  <div class="container">
+    <h2>关键技术难点与解决方案</h2>
+    <table class="problem-table">
+      <thead>
+        <tr><th>难点</th><th>问题描述</th><th>解决方案</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="severity sev-critical">HDevelop 26 XML 适配</td>
+          <td>HALCON 26 使用 &lt;l&gt;/&lt;c&gt; 元素存储代码，与旧版格式不兼容</td>
+          <td>分析 HDevelop 原生导出格式，按规范编写 XML</td>
+        </tr>
+        <tr>
+          <td class="severity sev-critical">Iconic/Control 类型冲突</td>
+          <td><code>set_dict_tuple</code> 不接收 iconic 图像变量</td>
+          <td>改用 <code>gen_dl_samples_from_images</code></td>
+        </tr>
+        <tr>
+          <td class="severity sev-critical">异常图提取失败</td>
+          <td><code>get_dict_tuple</code> 返回 control 值</td>
+          <td>改用 <code>get_dict_object</code></td>
+        </tr>
+        <tr>
+          <td class="severity sev-important">preprocess_dl_model 缺失</td>
+          <td>HALCON 26 已移除此算子</td>
+          <td>手动实现 5 步预处理流水线</td>
+        </tr>
+        <tr>
+          <td class="severity sev-important">坐标偏差</td>
+          <td>256² vs 900² 尺寸不匹配</td>
+          <td>仿射变换 <code>affine_trans_region</code></td>
+        </tr>
+        <tr>
+          <td class="severity sev-important">文本不可见</td>
+          <td><code>disp_message</code> 坐标系错误</td>
+          <td>'window' → 'image' 坐标系</td>
+        </tr>
+        <tr>
+          <td>通道不匹配</td>
+          <td>原图 3ch vs 热力图 1ch</td>
+          <td><code>rgb1_to_gray</code> 统一为单通道</td>
+        </tr>
+        <tr>
+          <td>批量变量未定义</td>
+          <td>ImgWidth/ImgHeight 批量循环中未初始化</td>
+          <td>每张图片单独 <code>get_image_size</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section id="results">
+  <div class="container">
+    <h2>检测效果展示</h2>
+
+    <div class="compare" style="margin-bottom:30px;">
+      <div class="result-card ok">
+        <div class="verdict">OK</div>
+        <div style="font-size:1.2em; font-weight:700; color:var(--green);">合格品</div>
+        <div class="detail">
+          异常分数: 0.0234<br>
+          缺陷区域: 0<br>
+          判定: 通过 ✓
+        </div>
+      </div>
+      <div class="result-card ng">
+        <div class="verdict">NG</div>
+        <div style="font-size:1.2em; font-weight:700; color:var(--red);">不合格品</div>
+        <div class="detail">
+          异常分数: 0.8721<br>
+          缺陷区域: 3<br>
+          判定: 拒绝 ✕
+        </div>
+      </div>
+    </div>
+
+    <table class="problem-table">
+      <thead>
+        <tr><th>功能</th><th>状态</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>单张图片检测</td><td>✅ 完成</td><td>双窗口交互式展示，暂停等待用户操作</td></tr>
+        <tr><td>批量文件夹检测</td><td>✅ 完成</td><td>遍历所有图片，按 OK/NG 分类保存</td></tr>
+        <tr><td>异常热力图生成</td><td>✅ 完成</td><td>模型输出 256×256 像素级异常概率</td></tr>
+        <tr><td>缺陷矩形框标注</td><td>✅ 完成</td><td>经坐标映射后准确定位在原图</td></tr>
+        <tr><td>OK/NG 判定展示</td><td>✅ 完成</td><td>居中大字体结果显示</td></tr>
+        <tr><td>异常分数输出</td><td>✅ 完成</td><td>底部显示分数与缺陷数量</td></tr>
+        <tr><td>批量结果保存</td><td>✅ 完成</td><td>output/ 目录按 OK/NG 前缀保存</td></tr>
+        <tr><td>单张容错</td><td>✅ 完成</td><td>单张失败不中断整个批量</td></tr>
+        <tr><td>缺陷类型分类</td><td>⚠️ 待升级</td><td>需更换为分类/检测模型</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ SUMMARY ============ -->
+<section id="summary">
+  <div class="container">
+    <h2>总结与展望</h2>
+
+    <div class="compare">
+      <div>
+        <h3 style="margin-bottom:12px;">项目成果</h3>
+        <ul style="padding-left:20px;">
+          <li style="padding:6px 0;">完整的工业缺陷检测流水线</li>
+          <li style="padding:6px 0;">支持单张调试 + 批量处理双模式</li>
+          <li style="padding:6px 0;">HALCON 26 DLT 平台工程实践</li>
+          <li style="padding:6px 0;">6 类 HDevelop 兼容性问题攻克</li>
+          <li style="padding:6px 0;">坐标映射、类型转换等核心技术方案</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-bottom:12px;">后续方向</h3>
+        <ul style="padding-left:20px;">
+          <li style="padding:6px 0;">🔮 缺陷类型分类（换用检测模型）</li>
+          <li style="padding:6px 0;">🔮 阈值自适应（基于统计分布）</li>
+          <li style="padding:6px 0;">🔮 实时产线检测（集成相机 SDK）</li>
+          <li style="padding:6px 0;">🔮 独立 GUI 程序（脱离 HDevelop）</li>
+          <li style="padding:6px 0;">🔮 模型性能评估（量化指标）</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="tech-grid" style="margin-top:40px;">
+      <div class="tech-item">
+        <div class="icon">🖼️</div>
+        <div class="label">HALCON 26.05</div>
+        <div class="ver">MVTec</div>
+      </div>
+      <div class="tech-item">
+        <div class="icon">🧠</div>
+        <div class="label">DLT</div>
+        <div class="ver">Deep Learning Tool</div>
+      </div>
+      <div class="tech-item">
+        <div class="icon">📐</div>
+        <div class="label">GC Anomaly Detection</div>
+        <div class="ver">模型类型</div>
+      </div>
+      <div class="tech-item">
+        <div class="icon">📝</div>
+        <div class="label">HDevelop</div>
+        <div class="ver">开发环境</div>
+      </div>
+      <div class="tech-item">
+        <div class="icon">📊</div>
+        <div class="label">MVTec AD Dataset</div>
+        <div class="ver">数据集</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>基于深度学习的晶体管缺陷检测系统 · HALCON DLT · 毕业答辩</p>
+  <p style="margin-top:4px;">Transistor Defect Inspection System — Powered by MVTec HALCON Deep Learning</p>
+</footer>
+
+</body>
+</html>
